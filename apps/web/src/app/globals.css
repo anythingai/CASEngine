@@ -1,0 +1,345 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.75rem;
+    
+    /* Cultural Arbitrage specific colors */
+    --gradient-from: 240 5.9% 10%;
+    --gradient-to: 240 5.9% 15%;
+    --success: 142 76% 36%;
+    --success-foreground: 355 7% 97%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 89%;
+    --info: 221 83% 53%;
+    --info-foreground: 210 40% 98%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    
+    /* Enhanced dark theme colors */
+    --gradient-from: 240 5.9% 10%;
+    --gradient-to: 240 10% 18%;
+    --success: 142 70% 45%;
+    --success-foreground: 144 61% 20%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 89%;
+    --info: 221 83% 53%;
+    --info-foreground: 210 40% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: "opsz" 32;
+    scroll-behavior: smooth;
+  }
+  
+  /* Enhanced typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply scroll-m-20 tracking-tight;
+    text-wrap: balance;
+  }
+  
+  h1 {
+    @apply text-4xl font-bold lg:text-5xl;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold lg:text-4xl;
+  }
+  
+  h3 {
+    @apply text-2xl font-semibold;
+  }
+  
+  h4 {
+    @apply text-xl font-semibold;
+  }
+  
+  /* Custom focus styles */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/20;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-border/80;
+  }
+  
+  /* Selection styles */
+  ::selection {
+    @apply bg-primary/20 text-primary-foreground;
+  }
+}
+
+@layer components {
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-background/80 backdrop-blur-md border border-border/40;
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent;
+  }
+  
+  /* Animated gradient background */
+  .gradient-bg {
+    @apply bg-gradient-to-br from-background via-background to-muted/20;
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1;
+  }
+  
+  /* Button loading state */
+  .btn-loading {
+    @apply relative text-transparent transition-none hover:text-transparent disabled:cursor-not-allowed;
+  }
+  
+  .btn-loading::after {
+    content: "";
+    @apply absolute inset-0 flex items-center justify-center;
+    background-image: conic-gradient(from 90deg at 50% 50%, transparent 0deg, hsl(var(--primary)) 360deg);
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), black calc(100% - 2px));
+    border-radius: inherit;
+    animation: rotate 1s linear infinite;
+  }
+  
+  /* Animation for loading spinner */
+  @keyframes rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Pulse animation for search states */
+  .pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+  
+  /* Fade in animation */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Slide up animation */
+  .slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer utilities {
+  /* Custom text sizes with better line heights */
+  .text-xs {
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+  
+  .text-sm {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  .text-base {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  .text-lg {
+    font-size: 1.125rem;
+    line-height: 1.6;
+  }
+  
+  .text-xl {
+    font-size: 1.25rem;
+    line-height: 1.5;
+  }
+  
+  /* Custom spacing utilities */
+  .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 2rem;
+  }
+  
+  .space-y-12 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 3rem;
+  }
+  
+  /* Container with better responsive padding */
+  .container-responsive {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* Risk level colors */
+  .risk-low {
+    @apply text-green-600 dark:text-green-400;
+  }
+  
+  .risk-medium {
+    @apply text-yellow-600 dark:text-yellow-400;
+  }
+  
+  .risk-high {
+    @apply text-orange-600 dark:text-orange-400;
+  }
+  
+  .risk-extreme {
+    @apply text-red-600 dark:text-red-400;
+  }
+  
+  /* Priority colors */
+  .priority-low {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+  
+  .priority-medium {
+    @apply text-blue-600 dark:text-blue-400;
+  }
+  
+  .priority-high {
+    @apply text-orange-600 dark:text-orange-400;
+  }
+  
+  .priority-critical {
+    @apply text-red-600 dark:text-red-400;
+  }
+  
+  /* Status indicators */
+  .status-active {
+    @apply text-green-600 dark:text-green-400;
+  }
+  
+  .status-inactive {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+  
+  .status-pending {
+    @apply text-yellow-600 dark:text-yellow-400;
+  }
+  
+  .status-archived {
+    @apply text-gray-500 dark:text-gray-500;
+  }
+}
+
+/* Dark theme default preference */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root {
+    --border: 240 5.9% 20%;
+  }
+  
+  .dark {
+    --border: 240 5.9% 80%;
+  }
+}

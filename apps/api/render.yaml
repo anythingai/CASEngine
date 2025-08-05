@@ -1,0 +1,100 @@
+services:
+  - type: web
+    name: cultural-arbitrage-api
+    runtime: docker
+    plan: starter
+    region: oregon
+    branch: main
+    rootDir: apps/api
+    dockerfilePath: ./Dockerfile
+    dockerContext: ../../
+    numInstances: 1
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
+      - key: LOG_LEVEL
+        value: info
+      - key: CORS_ORIGINS
+        fromService:
+          type: web
+          name: cultural-arbitrage-web
+          property: host
+      - key: CACHE_TTL_SHORT
+        value: "300"
+      - key: CACHE_TTL_MEDIUM
+        value: "1800"
+      - key: CACHE_TTL_LONG
+        value: "3600"
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "100"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: API_KEY
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: QLOO_API_KEY
+        sync: false
+      - key: COINGECKO_API_KEY
+        sync: false
+      - key: OPENSEA_API_KEY
+        sync: false
+      - key: TWITTER_API_KEY
+        sync: false
+      - key: TWITTER_API_SECRET
+        sync: false
+      - key: TWITTER_BEARER_TOKEN
+        sync: false
+      - key: FARCASTER_API_KEY
+        sync: false
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/shared/**
+      ignoredPaths:
+        - "**/*.md"
+        - "**/*.txt"
+        - "**/node_modules/**"
+        - "**/.git/**"
+    autoDeploy: true
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 80
+      targetCPUPercent: 80
+
+  # Optional: Web service for frontend (if deploying both on Render)
+  # - type: web
+  #   name: cultural-arbitrage-web
+  #   runtime: node
+  #   plan: starter
+  #   region: oregon
+  #   branch: main
+  #   rootDir: apps/web
+  #   buildCommand: npm run build
+  #   startCommand: npm start
+  #   envVars:
+  #     - key: NODE_ENV
+  #       value: production
+  #     - key: NEXT_PUBLIC_API_URL
+  #       fromService:
+  #         type: web
+  #         name: cultural-arbitrage-api
+  #         property: host
+  #   autoDeploy: true
+
+databases: []
+
+# Optional: Redis cache service
+# - type: redis
+#   name: cultural-arbitrage-cache
+#   plan: starter
+#   region: oregon
+#   ipAllowList: []
