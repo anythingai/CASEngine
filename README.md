@@ -13,6 +13,40 @@ The Cultural Arbitrage Signal Engine is designed to:
 
 ## 🏗️ Architecture
 
+### System Overview
+
+```mermaid
+graph TB
+    User[User] --> Web[Web App]
+    Web --> API[API Gateway]
+    
+    API --> Orchestration[Orchestration Service]
+    Orchestration --> GPT[GPT Service]
+    Orchestration --> Qloo[Qloo Service]
+    Orchestration --> Assets[Asset Discovery]
+    Orchestration --> Social[Social Analysis]
+    
+    Assets --> CoinGecko[CoinGecko Service]
+    Assets --> OpenSea[OpenSea Service]
+    
+    GPT -.-> OpenAI[OpenAI/Claude]
+    Qloo -.-> QlooAPI[Qloo Taste AI]
+    CoinGecko -.-> CoinGeckoAPI[CoinGecko API]
+    OpenSea -.-> OpenSeaAPI[OpenSea API]
+    Social -.-> Twitter[Twitter/X API]
+    Social -.-> Farcaster[Farcaster API]
+    
+    Orchestration --> Cache[Cache Service]
+    API --> Middleware[Middleware]
+    
+    Web --> Shared[Shared Package]
+    API --> Shared
+```
+
+The Cultural Arbitrage Signal Engine transforms cultural "vibes" into actionable crypto/NFT insights through a sophisticated pipeline that combines AI-powered analysis, taste correlations, and multi-source asset discovery.
+
+### Technical Stack
+
 This is a **monorepo** built with:
 
 - **Turborepo**: For efficient build orchestration and caching
@@ -152,7 +186,7 @@ Tests are organized by package:
 
 ## 📁 Project Structure
 
-```
+``` text
 cultural-arbitrage/
 ├── apps/
 │   ├── web/                 # Next.js frontend
