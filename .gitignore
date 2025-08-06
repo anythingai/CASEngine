@@ -185,15 +185,37 @@ models/
 # Web3/Crypto related (security critical)
 keystore/
 *.wallet
-*.key
-*.pem
 private-keys/
 secrets/
 
+# SSL Certificates (security critical - never commit real certificates)
+ssl/certs/*.crt
+ssl/certs/*.pem
+ssl/private/*.key
+ssl/private/*.pem
+# But allow the directory structure
+!ssl/
+!ssl/certs/
+!ssl/private/
+!ssl/.gitkeep
+!ssl/certs/.gitkeep
+!ssl/private/.gitkeep
+
 # Docker development overrides
 docker-compose.override.yml
-docker-compose.*.yml
+docker-compose.dev.yml
+docker-compose.test.yml
+# Keep production and main docker-compose files
 !docker-compose.yml
+!docker-compose.prod.yml
+
+# Render deployment files (should be committed)
+!Dockerfile.render
+!ecosystem.render.js
+!render.yaml
+!.env.render
+!RENDER-DEPLOYMENT.md
+!deploy-render.sh
 
 # PM2 runtime files (you have ecosystem.config.js)
 .pm2/

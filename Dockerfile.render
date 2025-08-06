@@ -1,0 +1,44 @@
+# Dockerfile.render - Single service for entire Cultural Arbitrage monorepo
+FROM node:18-alpine AS base
+
+# Install dependencies for native compilation and PM2
+RUN apk add --no-cache libc6-compat dumb-init
+RUN npm install -g turbo@latest pm2
+
+WORKDIR /app
+
+# Copy monorepo structure
+COPY package*.json ./
+COPY turbo.json ./
+COPY apps/ ./apps/
+COPY packages/ ./packages/
+
+# Install all dependencies
+RUN npm ci
+
+# Build entire monorepo with Turbo
+RUN turbo build
+
+# Install only production dependencies and clean up
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy PM2 ecosystem configuration
+COPY ecosystem.render.js ./
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Change ownership of the app directory
+RUN chown -R nodejs:nodejs /app
+USER nodejs
+
+# Expose both ports (Web on 3000, API internal on 8000)
+EXPOSE 3000
+
+# Health check for the main web service
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000', (res) => process.exit(res.statusCode === 200 ? 0 : 1))" || \
+      node -e "require('http').get('http://localhost:8000/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+
+# Start both services with PM2
+CMD ["dumb-init", "pm2-runtime", "start", "ecosystem.render.js"]

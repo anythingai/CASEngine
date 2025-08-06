@@ -1,0 +1,63 @@
+services:
+  - type: web
+    name: cultural-arbitrage
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    plan: starter  # Change to 'standard' for production
+    region: oregon  # Change to your preferred region
+    branch: main
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: HOSTNAME
+        value: "0.0.0.0"
+      # API Internal Communication
+      - key: NEXT_PUBLIC_API_URL
+        value: "http://localhost:8000"
+      # App Configuration
+      - key: NEXT_PUBLIC_APP_NAME
+        value: "Cultural Arbitrage Signal Engine"
+      - key: NEXT_PUBLIC_APP_TAGLINE
+        value: "Trade the trend before it trends — with taste‑powered alpha"
+      - key: NEXT_PUBLIC_ENABLE_DEBUG
+        value: "false"
+      - key: NEXT_PUBLIC_DEFAULT_THEME
+        value: "dark"
+      # Security - REPLACE WITH ACTUAL VALUES
+      - key: JWT_SECRET
+        generateValue: true  # Render will generate a secure value
+      - key: API_KEY
+        generateValue: true  # Render will generate a secure value
+      # Performance Settings
+      - key: LOG_LEVEL
+        value: "info"
+      - key: CACHE_TTL_SHORT
+        value: "300"
+      - key: CACHE_TTL_MEDIUM
+        value: "1800"
+      - key: CACHE_TTL_LONG
+        value: "3600"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "1000"
+      - key: ENABLE_RATE_LIMITING
+        value: "true"
+      - key: ENABLE_LOGGING
+        value: "true"
+      - key: ENABLE_CORS
+        value: "true"
+      - key: ENABLE_COMPRESSION
+        value: "true"
+      # You must manually add these sensitive environment variables in Render dashboard:
+      # AZURE_OPENAI_API_KEY
+      # AZURE_OPENAI_ENDPOINT
+      # COINGECKO_API_KEY
+      # OPENSEA_API_KEY
+      # TWITTER_API_KEY
+      # TWITTER_API_SECRET
+      # TWITTER_BEARER_TOKEN
+      # TWITTER_ACCESS_TOKEN
+      # TWITTER_ACCESS_TOKEN_SECRET
+      # FARCASTER_API_KEY
+      # QLOO_API_KEY (optional)
