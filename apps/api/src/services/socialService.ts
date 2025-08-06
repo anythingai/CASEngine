@@ -142,25 +142,9 @@ export class SocialService extends BaseService {
     }
 
     try {
-      const response = await this.makeRequest({
-        method: 'GET',
-        url: '/trends/place.json',
-        params: this.buildParams({
-          id: location === 'global' ? '1' : location,
-        }),
-        headers: {
-          'Authorization': `Bearer ${this.twitterClient.bearer}`,
-        },
-      });
-
-       
-      const trends = this.normalizeTwitterTrends(response.data as any);
-      
-      if (useCache) {
-        cacheService.set(cacheKey, trends, 'short');
-      }
-
-      return trends;
+      // Twitter API v2 doesn't have direct trends endpoint, use fallback
+      console.warn('[SocialService] Twitter trends API not available in v2, using fallback');
+      return this.getFallbackTwitterTrends();
     } catch (error) {
       console.warn('[SocialService] Failed to get Twitter trends:', getErrorMessage(error));
       return this.getFallbackTwitterTrends();
@@ -220,6 +204,8 @@ export class SocialService extends BaseService {
     }
 
     try {
+      // Use axios directly for Neynar API call
+      const axios = require('axios');
       const endpoint = query ? '/casts/search' : '/casts/trending';
        
       const params: any = { limit: Math.min(limit, 100) };
@@ -227,19 +213,18 @@ export class SocialService extends BaseService {
         params.q = query;
       }
 
-      const response = await this.makeRequest({
+      const response = await axios({
         method: 'GET',
-        url: endpoint,
-        params: this.buildParams(params),
+        url: `${this.farcasterClient.baseURL}${endpoint}`,
+        params: params,
         headers: {
-          'Authorization': `Bearer ${this.farcasterClient.apiKey}`,
+          'Accept': 'application/json',
+          'api_key': this.farcasterClient.apiKey,
         },
-         
-        baseURL: (this.farcasterClient as any).baseURL,
+        timeout: config.social.farcaster.timeout,
       });
 
-       
-      const casts = this.normalizeFarcasterCasts((response.data as any).casts || []);
+      const casts = this.normalizeFarcasterCasts(response.data?.casts || []);
       
       if (useCache) {
         cacheService.set(cacheKey, casts, 'short');
@@ -318,23 +303,6 @@ export class SocialService extends BaseService {
     return influencers
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, limit);
-  }
-
-   
-  private normalizeTwitterTrends(data: any): TwitterTrend[] {
-     
-    if (!data || !(data[0] as any)?.trends) {
-      return [];
-    }
-
-     
-    return data[0].trends.map((trend: any) => ({
-      name: trend.name,
-      query: trend.query,
-      tweetVolume: trend.tweet_volume,
-      url: trend.url,
-      promoted: trend.promoted_content || false,
-    }));
   }
 
    

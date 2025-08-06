@@ -137,9 +137,10 @@ export class GPTService extends BaseService {
 
   private async makeGPTRequest(request: GPTRequest): Promise<GPTResponse> {
     // Try Azure OpenAI first if available
-    if (this.azureClient) {
+    if (this.azureClient && config.ai.azure.apiKey && config.ai.azure.endpoint) {
       try {
-        const response = await this.azureClient.chat.completions.create({
+        // Azure OpenAI o4-mini only supports temperature = 1.0
+        const azureRequestParams: any = {
           model: config.ai.azure.model,
           messages: [
             {
@@ -148,8 +149,15 @@ export class GPTService extends BaseService {
             }
           ],
           max_completion_tokens: request.maxTokens || config.ai.azure.maxTokens,
-          temperature: request.temperature || 0.7,
-        });
+          temperature: 1.0, // o4-mini only supports temperature=1.0
+        };
+
+        // Warn if a different temperature was requested
+        if (request.temperature && request.temperature !== 1.0) {
+          console.warn(`Azure OpenAI o4-mini only supports temperature=1.0, ignoring requested temperature=${request.temperature}`);
+        }
+
+        const response = await this.azureClient.chat.completions.create(azureRequestParams);
 
         const choice = response.choices?.[0];
         if (!choice) {

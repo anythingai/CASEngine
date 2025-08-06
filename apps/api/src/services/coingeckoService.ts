@@ -71,16 +71,15 @@ export class CoinGeckoService extends BaseService {
 
   constructor() {
     const headers: Record<string, string> = {};
-    const isProVersion = !!config.coingecko.apiKey;
     
     if (config.coingecko.apiKey) {
-      headers['x-cg-pro-api-key'] = config.coingecko.apiKey;
+      headers['x-cg-demo-api-key'] = config.coingecko.apiKey;
     }
 
-    const baseURL = isProVersion ? config.coingecko.proBaseURL : config.coingecko.baseURL;
+    // Always use the regular API URL, even with API key (demo tier)
+    const baseURL = config.coingecko.baseURL;
     
     super(baseURL, 'CoinGeckoService', headers);
-    // this.isProVersion = isProVersion;
   }
 
   async getTokenInfo(tokenId: string, useCache: boolean = true): Promise<TokenInfo | null> {

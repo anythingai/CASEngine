@@ -4,14 +4,15 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+
+// Load environment variables FIRST before importing config
+dotenv.config();
+
 import { config } from '@/config/environment';
 import { errorHandler } from '@/middleware/errorHandler';
 import { rateLimiter } from '@/middleware/rateLimiter';
 import { apiRoutes } from '@/routes/api';
 import { monitoringRoutes } from '@/routes/monitoring';
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 const PORT = config.port;
@@ -58,6 +59,7 @@ app.get('/health', (_req, res) => {
 // Monitoring routes (before API routes for health checks)
 app.use('/', monitoringRoutes);
 
+
 // API routes
 app.use('/api', apiRoutes);
 
@@ -78,6 +80,9 @@ const server = app.listen(PORT, () => {
   console.log(`🚀 Cultural Arbitrage API server running on port ${PORT}`);
   console.log(`📊 Environment: ${config.nodeEnv}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔧 Azure OpenAI: ${config.ai.azure.apiKey && config.ai.azure.endpoint ? '✅ Configured' : '❌ Not configured'}`);
+  console.log(`🔧 CoinGecko API: ${config.coingecko.apiKey ? '✅ Configured' : '❌ Not configured'}`);
+  console.log(`🔧 OpenSea API: ${config.opensea.apiKey ? '✅ Configured' : '❌ Not configured'}`);
 });
 
 // Graceful shutdown

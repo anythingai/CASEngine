@@ -159,7 +159,9 @@ export class OpenSeaService extends BaseService {
         url: `/collections/${slug}/stats`,
       });
 
-      const stats = this.normalizeCollectionStats(slug, (response.data as any).stats);
+      // Handle different possible response structures
+      const statsData = (response.data as any).stats || (response.data as any) || {};
+      const stats = this.normalizeCollectionStats(slug, statsData);
       
       if (useCache) {
         cacheService.set(cacheKey, stats, 'short');
@@ -268,13 +270,11 @@ export class OpenSeaService extends BaseService {
 
   private async getTrendingCollections(): Promise<NFTCollection[]> {
     try {
-      // OpenSea doesn't have a direct trending endpoint, so we'll use volume sorting
+      // Use a simpler approach since 'volume' ordering might not be supported
       const response = await this.makeRequest({
         method: 'GET',
         url: '/collections',
         params: this.buildParams({
-          order_by: 'volume',
-          order_direction: 'desc',
           limit: 20,
           include_hidden: false,
         }),
@@ -433,27 +433,30 @@ export class OpenSeaService extends BaseService {
 
    
   private normalizeCollectionStats(slug: string, data: any): CollectionStats {
+    // Handle both nested and flat data structures
+    const stats = data || {};
+    
     return {
       slug,
-      totalVolume: data.total_volume || 0,
-      totalSales: data.total_sales || 0,
-      totalSupply: data.total_supply || 0,
-      count: data.count || 0,
-      numOwners: data.num_owners || 0,
-      averagePrice: data.average_price || 0,
-      numReports: data.num_reports || 0,
-      marketCap: data.market_cap || 0,
-      floorPrice: data.floor_price || 0,
-      floorPriceSymbol: data.floor_price_symbol || 'ETH',
+      totalVolume: stats.total_volume || stats.totalVolume || 0,
+      totalSales: stats.total_sales || stats.totalSales || 0,
+      totalSupply: stats.total_supply || stats.totalSupply || 0,
+      count: stats.count || 0,
+      numOwners: stats.num_owners || stats.numOwners || 0,
+      averagePrice: stats.average_price || stats.averagePrice || 0,
+      numReports: stats.num_reports || stats.numReports || 0,
+      marketCap: stats.market_cap || stats.marketCap || 0,
+      floorPrice: stats.floor_price || stats.floorPrice || 0,
+      floorPriceSymbol: stats.floor_price_symbol || stats.floorPriceSymbol || 'ETH',
       volume: {
-        '1d': data.one_day_volume || 0,
-        '7d': data.seven_day_volume || 0,
-        '30d': data.thirty_day_volume || 0,
+        '1d': stats.one_day_volume || stats.oneDayVolume || 0,
+        '7d': stats.seven_day_volume || stats.sevenDayVolume || 0,
+        '30d': stats.thirty_day_volume || stats.thirtyDayVolume || 0,
       },
       change: {
-        '1d': data.one_day_change || 0,
-        '7d': data.seven_day_change || 0,
-        '30d': data.thirty_day_change || 0,
+        '1d': stats.one_day_change || stats.oneDayChange || 0,
+        '7d': stats.seven_day_change || stats.sevenDayChange || 0,
+        '30d': stats.thirty_day_change || stats.thirtyDayChange || 0,
       },
     };
   }

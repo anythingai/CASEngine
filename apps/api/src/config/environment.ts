@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import dotenv from 'dotenv';
+
+// Load environment variables FIRST
+dotenv.config();
 
 // Environment schema validation
 const envSchema = z.object({
@@ -33,6 +37,8 @@ const envSchema = z.object({
   TWITTER_API_KEY: z.string().optional(),
   TWITTER_API_SECRET: z.string().optional(),
   TWITTER_BEARER_TOKEN: z.string().optional(),
+  TWITTER_ACCESS_TOKEN: z.string().optional(),
+  TWITTER_ACCESS_TOKEN_SECRET: z.string().optional(),
   FARCASTER_API_KEY: z.string().optional(),
   
   // Cache Configuration
@@ -43,6 +49,19 @@ const envSchema = z.object({
   // Rate Limiting Configuration
   RATE_LIMIT_WINDOW_MS: z.string().transform(Number).default('900000'), // 15 minutes
   RATE_LIMIT_MAX_REQUESTS: z.string().transform(Number).default('100'),
+  
+  // Feature Flags
+  ENABLE_RATE_LIMITING: z.string().transform(val => val === 'true').default('true'),
+  ENABLE_LOGGING: z.string().transform(val => val === 'true').default('true'),
+  ENABLE_CORS: z.string().transform(val => val === 'true').default('true'),
+  ENABLE_COMPRESSION: z.string().transform(val => val === 'true').default('false'),
+  
+  // Performance Configuration
+  MAX_REQUEST_SIZE: z.string().default('10mb'),
+  REQUEST_TIMEOUT: z.string().transform(Number).default('30000'),
+  
+  // Health Check Configuration
+  HEALTH_CHECK_INTERVAL: z.string().transform(Number).default('30000'),
 });
 
 // Parse and validate environment variables
@@ -123,12 +142,14 @@ export const config = {
       apiKey: env.TWITTER_API_KEY,
       apiSecret: env.TWITTER_API_SECRET,
       bearerToken: env.TWITTER_BEARER_TOKEN,
+      accessToken: env.TWITTER_ACCESS_TOKEN,
+      accessTokenSecret: env.TWITTER_ACCESS_TOKEN_SECRET,
       baseURL: 'https://api.twitter.com/2',
       timeout: 10000,
     },
     farcaster: {
       apiKey: env.FARCASTER_API_KEY,
-      baseURL: 'https://api.farcaster.xyz',
+      baseURL: 'https://api.neynar.com/v2',
       timeout: 10000,
     },
   },
@@ -145,10 +166,10 @@ export const config = {
   
   // Feature flags
   features: {
-    rateLimiting: true,
-    logging: env.NODE_ENV !== 'test',
-    cors: true,
-    compression: env.NODE_ENV === 'production',
+    rateLimiting: env.ENABLE_RATE_LIMITING,
+    logging: env.ENABLE_LOGGING,
+    cors: env.ENABLE_CORS,
+    compression: env.ENABLE_COMPRESSION,
     caching: true,
   },
   
@@ -164,7 +185,13 @@ export const config = {
   api: {
     version: 'v1',
     baseUrl: '/api',
-    timeout: 30000, // 30 seconds
+    timeout: env.REQUEST_TIMEOUT,
+    maxRequestSize: env.MAX_REQUEST_SIZE,
+  },
+  
+  // Health Check Configuration
+  healthCheck: {
+    interval: env.HEALTH_CHECK_INTERVAL,
   },
 } as const;
 
