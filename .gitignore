@@ -209,14 +209,6 @@ docker-compose.test.yml
 !docker-compose.yml
 !docker-compose.prod.yml
 
-# Render deployment files (should be committed)
-!Dockerfile.render
-!ecosystem.render.js
-!render.yaml
-!.env.render
-!RENDER-DEPLOYMENT.md
-!deploy-render.sh
-
 # PM2 runtime files (you have ecosystem.config.js)
 .pm2/
 
