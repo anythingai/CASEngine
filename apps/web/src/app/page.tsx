@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from "react"
 import { SearchBar } from "@/components/SearchBar"
 import { ThemeToggle } from "@/components/ThemeToggle"
-import { SearchingSpinner } from "@/components/LoadingSpinner"
 import { NetworkError } from "@/components/ErrorDisplay"
 import { ResultsLayout } from "@/components/results/ResultsLayout"
 import { ProgressIndicator } from "@/components/loading/ResultsSkeleton"
@@ -174,6 +173,37 @@ export default function Home() {
     handleSearch(example.vibe)
   }, [handleSearch, toast])
 
+  // Debug: Add home button handler to reset state
+  const handleHomeClick = useCallback(() => {
+    console.log('[DEBUG] Home button clicked - Current state:', {
+      isLoading: searchState.isLoading,
+      hasResults: !!searchState.results,
+      hasError: !!searchState.error,
+      currentStep: searchState.currentStep,
+      lastQuery
+    })
+    
+    // Reset all search state to initial values
+    setSearchState({
+      isLoading: false,
+      results: null,
+      error: null,
+      currentStep: 'idle',
+      progress: null
+    })
+    setLastQuery("")
+    
+    // Scroll to top of page
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    
+    console.log('[DEBUG] Home button - State reset complete')
+    
+    toast({
+      title: "Welcome back to home!",
+      description: "Ready to explore new cultural vibes",
+    })
+  }, [searchState, lastQuery, toast])
+
   // Clear error after 10 seconds
   useEffect(() => {
     if (searchState.error) {
@@ -189,23 +219,30 @@ export default function Home() {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Image
-              src="/logo.png"
-              alt="Cultural Arbitrage Signal Engine"
-              width={40}
-              height={40}
-              className="rounded-lg"
-            />
-            <div>
-              <h1 className="text-lg font-semibold">
+          <button
+            className="flex items-center space-x-3 hover:opacity-80 transition-all duration-200 cursor-pointer group bg-transparent border-0 p-0 m-0 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 rounded-lg"
+            onClick={handleHomeClick}
+            aria-label="Return to home"
+            title="Return to home"
+          >
+            <div className="flex-shrink-0 flex items-center">
+              <Image
+                src="/logo.png"
+                alt="Cultural Arbitrage Signal Engine"
+                width={40}
+                height={40}
+                className="rounded-lg group-hover:scale-105 transition-transform duration-200"
+              />
+            </div>
+            <div className="flex flex-col justify-center text-left min-h-[40px]">
+              <h1 className="text-lg font-semibold leading-none group-hover:text-primary transition-colors duration-200">
                 Cultural Arbitrage Signal Engine
               </h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">
+              <p className="text-xs text-muted-foreground leading-none -mt-0.5 hidden sm:block">
                 Trade the trend before it trends
               </p>
             </div>
-          </div>
+          </button>
           <ThemeToggle />
         </div>
       </header>
