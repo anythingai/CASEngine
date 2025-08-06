@@ -40,6 +40,14 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: AZURE_OPENAI_API_KEY
+        sync: false
+      - key: AZURE_OPENAI_ENDPOINT
+        sync: false
+      - key: AZURE_OPENAI_DEPLOYMENT
+        sync: false
+      - key: AZURE_OPENAI_API_VERSION
+        sync: false
       - key: QLOO_API_KEY
         sync: false
       - key: COINGECKO_API_KEY

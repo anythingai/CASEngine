@@ -15,6 +15,12 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   
+  // Azure OpenAI Services
+  AZURE_OPENAI_API_KEY: z.string().optional(),
+  AZURE_OPENAI_ENDPOINT: z.string().optional(),
+  AZURE_OPENAI_DEPLOYMENT: z.string().default('o4-mini'),
+  AZURE_OPENAI_API_VERSION: z.string().default('2025-01-01-preview'),
+  
   // Qloo Taste AI
   QLOO_API_KEY: z.string().optional(),
   QLOO_API_URL: z.string().default('https://api.qloo.com'),
@@ -73,6 +79,14 @@ export const config = {
       baseURL: 'https://api.openai.com/v1',
       model: 'gpt-4-turbo-preview',
       maxTokens: 4000,
+    },
+    azure: {
+      apiKey: env.AZURE_OPENAI_API_KEY,
+      endpoint: env.AZURE_OPENAI_ENDPOINT,
+      deployment: env.AZURE_OPENAI_DEPLOYMENT,
+      apiVersion: env.AZURE_OPENAI_API_VERSION,
+      model: 'o4-mini',
+      maxTokens: 40000,
     },
     anthropic: {
       apiKey: env.ANTHROPIC_API_KEY,

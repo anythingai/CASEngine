@@ -63,6 +63,7 @@ router.get('/health/detailed', (_req: Request, res: Response) => {
       redis: 'not_configured',    // Would check Redis connection if configured
       externalApis: {
         openai: config.ai.openai.apiKey ? 'configured' : 'not_configured',
+        azureOpenAI: (config.ai.azure.apiKey && config.ai.azure.endpoint) ? 'configured' : 'not_configured',
         qloo: config.qloo.apiKey ? 'configured' : 'not_configured',
         coingecko: config.coingecko.apiKey ? 'configured' : 'not_configured',
         opensea: config.opensea.apiKey ? 'configured' : 'not_configured',

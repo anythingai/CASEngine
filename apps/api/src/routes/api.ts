@@ -83,7 +83,7 @@ router.get('/', asyncHandler(async (_req: Request, res: Response) => {
       api: 'GET /api',
     },
     services: {
-      gpt: 'OpenAI/Claude integration for theme expansion',
+      gpt: 'Azure OpenAI/OpenAI/Claude integration for theme expansion',
       qloo: 'Qloo Taste AI for cultural correlations',
       coingecko: 'CoinGecko for token data and market metrics',
       opensea: 'OpenSea for NFT collection and asset data',

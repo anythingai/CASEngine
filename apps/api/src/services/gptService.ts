@@ -1,6 +1,7 @@
 import { BaseService } from './base';
 import { config } from '@/config/environment';
 import { cacheService, CacheKeys } from './cacheService';
+import { AzureOpenAI } from 'openai';
 
 export interface ThemeExpansion {
   originalTheme: string;
@@ -35,14 +36,31 @@ export interface GPTResponse {
 }
 
 export class GPTService extends BaseService {
+  private azureClient: AzureOpenAI | null = null;
+  
   constructor() {
     const headers: Record<string, string> = {};
     
+    // Fallback to regular OpenAI setup
     if (config.ai.openai.apiKey) {
       headers['Authorization'] = `Bearer ${config.ai.openai.apiKey}`;
     }
 
     super(config.ai.openai.baseURL, 'GPTService', headers);
+    
+    // Initialize Azure OpenAI client after super() call
+    if (config.ai.azure.apiKey && config.ai.azure.endpoint) {
+      try {
+        this.azureClient = new AzureOpenAI({
+          apiKey: config.ai.azure.apiKey,
+          endpoint: config.ai.azure.endpoint,
+          apiVersion: config.ai.azure.apiVersion,
+          deployment: config.ai.azure.deployment,
+        });
+      } catch (error) {
+        console.error('Failed to initialize Azure OpenAI client:', error);
+      }
+    }
   }
 
   async expandTheme(theme: string, useCache: boolean = true): Promise<ThemeExpansion> {
@@ -59,7 +77,7 @@ export class GPTService extends BaseService {
     
     const response = await this.makeGPTRequest({
       prompt,
-      maxTokens: config.ai.openai.maxTokens,
+      maxTokens: this.azureClient ? config.ai.azure.maxTokens : config.ai.openai.maxTokens,
       temperature: 0.7,
     });
 
@@ -118,8 +136,45 @@ export class GPTService extends BaseService {
   }
 
   private async makeGPTRequest(request: GPTRequest): Promise<GPTResponse> {
+    // Try Azure OpenAI first if available
+    if (this.azureClient) {
+      try {
+        const response = await this.azureClient.chat.completions.create({
+          model: config.ai.azure.model,
+          messages: [
+            {
+              role: 'user',
+              content: request.prompt
+            }
+          ],
+          max_completion_tokens: request.maxTokens || config.ai.azure.maxTokens,
+          temperature: request.temperature || 0.7,
+        });
+
+        const choice = response.choices?.[0];
+        if (!choice) {
+          throw new Error('No response from Azure OpenAI API');
+        }
+
+        return {
+          content: choice.message?.content || '',
+          usage: {
+            promptTokens: response.usage?.prompt_tokens || 0,
+            completionTokens: response.usage?.completion_tokens || 0,
+            totalTokens: response.usage?.total_tokens || 0,
+          },
+          finishReason: choice.finish_reason || 'unknown',
+        };
+      } catch (azureError) {
+        console.error('Azure OpenAI API error, falling back to regular OpenAI:', azureError);
+        
+        // Fall through to regular OpenAI if Azure fails
+      }
+    }
+
+    // Fallback to regular OpenAI
     if (!config.ai.openai.apiKey) {
-      throw new Error('OpenAI API key not configured');
+      throw new Error('Neither Azure OpenAI nor regular OpenAI API key is configured');
     }
 
     const response = await this.makeRequest({
