@@ -26,31 +26,31 @@ interface SignalCardProps {
 }
 
 const RISK_COLORS = {
-  low: 'text-green-600 bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-900',
-  medium: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-900',
-  high: 'text-red-600 bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-900',
-  extreme: 'text-purple-600 bg-purple-50 border-purple-200 dark:bg-purple-950 dark:border-purple-900'
+  low: 'text-success bg-success/10 border-success/20 shadow-success/10',
+  medium: 'text-warning bg-warning/10 border-warning/20 shadow-warning/10',
+  high: 'text-destructive bg-destructive/10 border-destructive/20 shadow-destructive/10',
+  extreme: 'text-neon bg-neon/10 border-neon/20 shadow-neon/10'
 }
 
 const ACTION_COLORS = {
-  buy: 'bg-green-500',
-  sell: 'bg-red-500', 
-  hold: 'bg-amber-500',
-  watch: 'bg-blue-500',
-  mint: 'bg-purple-500',
-  stake: 'bg-indigo-500'
+  buy: 'bg-success shadow-success/20',
+  sell: 'bg-destructive shadow-destructive/20',
+  hold: 'bg-warning shadow-warning/20',
+  watch: 'bg-info shadow-info/20',
+  mint: 'bg-neon shadow-neon/20',
+  stake: 'bg-cyber shadow-cyber/20'
 }
 
 const BLOCKCHAIN_COLORS = {
-  ethereum: 'bg-blue-600',
-  polygon: 'bg-purple-600',
-  arbitrum: 'bg-blue-500',
-  optimism: 'bg-red-500',
-  base: 'bg-blue-700',
-  solana: 'bg-green-500',
-  avalanche: 'bg-red-600',
-  bsc: 'bg-yellow-500',
-  other: 'bg-gray-500'
+  ethereum: 'bg-blue-600 text-white',
+  polygon: 'bg-purple-600 text-white',
+  arbitrum: 'bg-blue-500 text-white',
+  optimism: 'bg-red-500 text-white',
+  base: 'bg-blue-700 text-white',
+  solana: 'bg-green-500 text-white',
+  avalanche: 'bg-red-600 text-white',
+  bsc: 'bg-warning text-white',
+  other: 'bg-muted text-muted-foreground'
 }
 
 export function SignalCard({ asset, onExternalLink, onAddToPortfolio, className }: SignalCardProps) {
@@ -76,36 +76,35 @@ export function SignalCard({ asset, onExternalLink, onAddToPortfolio, className 
   }
 
   return (
-    <Card className={cn("group hover:shadow-lg transition-all duration-200", className)}>
-      <CardHeader className="pb-3">
+    <Card className={cn("group glass-card", className)}>
+      <CardHeader className="pb-6">
         <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-lg">{asset.symbol}</h3>
-              <Badge 
-                variant="outline" 
-                className={cn("text-xs", BLOCKCHAIN_COLORS[asset.blockchain])}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <h3 className="text-2xl font-bold">{asset.symbol}</h3>
+              <Badge
+                className={cn("px-3 py-1 rounded-xl font-medium", BLOCKCHAIN_COLORS[asset.blockchain])}
               >
                 {asset.blockchain}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">{asset.name}</p>
-            <Badge variant="secondary" className="w-fit">
+            <p className="text-base text-muted-foreground font-medium">{asset.name}</p>
+            <Badge variant="secondary" className="w-fit px-3 py-1 rounded-xl font-medium">
               {asset.type.replace('_', ' ')}
             </Badge>
           </div>
           
-          <div className="text-right space-y-1">
-            <div className="flex items-center gap-1">
-              <div 
-                className={cn("w-2 h-2 rounded-full", ACTION_COLORS[recommendation.action])}
+          <div className="text-right space-y-3">
+            <div className="flex items-center gap-2">
+              <div
+                className={cn("w-3 h-3 rounded-full", ACTION_COLORS[recommendation.action])}
               ></div>
-              <span className="text-sm font-medium capitalize">
+              <span className="text-base font-bold capitalize">
                 {recommendation.action}
               </span>
             </div>
             <div className={cn(
-              "text-xs px-2 py-1 rounded-full border",
+              "text-sm px-3 py-2 rounded-xl border-2 font-bold shadow-lg",
               RISK_COLORS[recommendation.riskLevel]
             )}>
               {recommendation.riskLevel} risk
@@ -114,68 +113,70 @@ export function SignalCard({ asset, onExternalLink, onAddToPortfolio, className 
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {/* Price Information */}
         {asset.currentPrice && (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <DollarSign className="h-3 w-3" />
-                Current Price
-              </div>
-              <p className="font-semibold">{formatPrice(asset.currentPrice)}</p>
-            </div>
-            
-            {asset.priceChange24h !== undefined && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  {asset.priceChange24h >= 0 ? (
-                    <TrendingUp className="h-3 w-3" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3" />
-                  )}
-                  24h Change
+          <div className="glass-card p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <DollarSign className="h-4 w-4" />
+                  Current Price
                 </div>
-                <p className={cn(
-                  "font-semibold",
-                  asset.priceChange24h >= 0 ? "text-green-600" : "text-red-600"
-                )}>
-                  {asset.priceChange24h >= 0 ? '+' : ''}{asset.priceChange24h.toFixed(2)}%
-                </p>
+                <p className="text-xl font-bold">{formatPrice(asset.currentPrice)}</p>
               </div>
-            )}
+              
+              {asset.priceChange24h !== undefined && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {asset.priceChange24h >= 0 ? (
+                      <TrendingUp className="h-4 w-4" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4" />
+                    )}
+                    24h Change
+                  </div>
+                  <p className={cn(
+                    "text-xl font-bold",
+                    asset.priceChange24h >= 0 ? "text-success" : "text-destructive"
+                  )}>
+                    {asset.priceChange24h >= 0 ? '+' : ''}{asset.priceChange24h.toFixed(2)}%
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {/* Volume and Market Cap */}
         <div className="grid grid-cols-2 gap-4">
           {asset.volume24h && (
-            <div className="space-y-1">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <BarChart3 className="h-3 w-3" />
+            <div className="glass-card p-4 space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <BarChart3 className="h-4 w-4" />
                 Volume 24h
               </div>
-              <p className="text-sm">{formatVolume(asset.volume24h)}</p>
+              <p className="text-lg font-bold">{formatVolume(asset.volume24h)}</p>
             </div>
           )}
           
           {asset.marketCap && (
-            <div className="space-y-1">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Target className="h-3 w-3" />
+            <div className="glass-card p-4 space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Target className="h-4 w-4" />
                 Market Cap
               </div>
-              <p className="text-sm">{formatVolume(asset.marketCap)}</p>
+              <p className="text-lg font-bold">{formatVolume(asset.marketCap)}</p>
             </div>
           )}
 
           {asset.floorPrice && (
-            <div className="space-y-1">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <DollarSign className="h-3 w-3" />
+            <div className="glass-card p-4 space-y-2 col-span-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <DollarSign className="h-4 w-4" />
                 Floor Price
               </div>
-              <p className="text-sm">{formatPrice(asset.floorPrice)}</p>
+              <p className="text-lg font-bold">{formatPrice(asset.floorPrice)}</p>
             </div>
           )}
         </div>
@@ -183,34 +184,34 @@ export function SignalCard({ asset, onExternalLink, onAddToPortfolio, className 
         <Separator />
 
         {/* Recommendation Details */}
-        <div className="space-y-3">
-          <div className="space-y-2">
+        <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Confidence</span>
-              <span className="text-sm text-muted-foreground">{confidencePercent}%</span>
+              <span className="text-base font-bold">AI Confidence</span>
+              <span className="text-base font-bold gradient-text-cosmic">{confidencePercent}%</span>
             </div>
-            <Progress value={confidencePercent} className="h-2" />
+            <Progress value={confidencePercent} className="h-3 gradient-animated" />
           </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <AlertTriangle className="h-3 w-3" />
-              Reasoning
+          <div className="glass-card p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <AlertTriangle className="h-4 w-4" />
+              AI Reasoning
             </div>
-            <p className="text-sm leading-relaxed">{recommendation.reasoning}</p>
+            <p className="text-base leading-relaxed font-medium">{recommendation.reasoning}</p>
           </div>
 
           {recommendation.timeframe && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>Timeframe: {recommendation.timeframe}</span>
+            <div className="flex items-center gap-3 text-base font-medium">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span>Timeframe: <span className="gradient-text-aurora">{recommendation.timeframe}</span></span>
             </div>
           )}
 
           {recommendation.targetPrice && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Target className="h-3 w-3" />
-              <span>Target: {formatPrice(recommendation.targetPrice)}</span>
+            <div className="flex items-center gap-3 text-base font-medium">
+              <Target className="h-4 w-4 text-muted-foreground" />
+              <span>Target: <span className="gradient-text-cyber">{formatPrice(recommendation.targetPrice)}</span></span>
             </div>
           )}
         </div>
@@ -219,33 +220,29 @@ export function SignalCard({ asset, onExternalLink, onAddToPortfolio, className 
 
         {/* Add to Portfolio Button */}
         {onAddToPortfolio && (
-          <div className="space-y-2">
-            <Button
-              onClick={() => onAddToPortfolio(asset)}
-              className="w-full"
-              size="sm"
-            >
-              <Target className="h-3 w-3 mr-2" />
-              Add to Portfolio
-            </Button>
-          </div>
+          <Button
+            onClick={() => onAddToPortfolio(asset)}
+            className="w-full h-12 text-base font-bold gradient-bg-cosmic text-white border-0 shadow-lg hover:scale-105 active:scale-95 transition-all duration-200"
+          >
+            <Target className="h-5 w-5 mr-3" />
+            Add to Portfolio
+          </Button>
         )}
 
         {onAddToPortfolio && asset.links && <Separator />}
 
         {/* External Links */}
         {asset.links && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">External Links</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="space-y-4">
+            <p className="text-base font-bold text-muted-foreground">External Links</p>
+            <div className="flex flex-wrap gap-3">
               {asset.links.opensea && (
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
+                  className="glass-button hover:gradient-bg-aurora hover:text-white hover:border-transparent"
                   onClick={() => handleExternalClick(asset.links!.opensea!, 'opensea')}
                 >
-                  <ExternalLink className="h-3 w-3 mr-1" />
+                  <ExternalLink className="h-4 w-4 mr-2" />
                   OpenSea
                 </Button>
               )}
@@ -253,11 +250,10 @@ export function SignalCard({ asset, onExternalLink, onAddToPortfolio, className 
               {asset.links.website && (
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
+                  className="glass-button hover:gradient-bg-cosmic hover:text-white hover:border-transparent"
                   onClick={() => handleExternalClick(asset.links!.website!, 'website')}
                 >
-                  <ExternalLink className="h-3 w-3 mr-1" />
+                  <ExternalLink className="h-4 w-4 mr-2" />
                   Website
                 </Button>
               )}
@@ -265,11 +261,10 @@ export function SignalCard({ asset, onExternalLink, onAddToPortfolio, className 
               {asset.links.twitter && (
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
+                  className="glass-button hover:gradient-bg-cyberpunk hover:text-white hover:border-transparent"
                   onClick={() => handleExternalClick(asset.links!.twitter!, 'twitter')}
                 >
-                  <ExternalLink className="h-3 w-3 mr-1" />
+                  <ExternalLink className="h-4 w-4 mr-2" />
                   Twitter
                 </Button>
               )}
@@ -277,11 +272,10 @@ export function SignalCard({ asset, onExternalLink, onAddToPortfolio, className 
               {asset.links.discord && (
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
+                  className="glass-button hover:gradient-bg-aurora hover:text-white hover:border-transparent"
                   onClick={() => handleExternalClick(asset.links!.discord!, 'discord')}
                 >
-                  <ExternalLink className="h-3 w-3 mr-1" />
+                  <ExternalLink className="h-4 w-4 mr-2" />
                   Discord
                 </Button>
               )}

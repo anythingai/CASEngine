@@ -15,7 +15,8 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { TrendingUp, Zap, Brain, Sparkles, ArrowRight, Clock } from "lucide-react"
+import { TrendingUp, Zap, Brain, Sparkles, ArrowRight, Clock, Github, Twitter, Globe, Heart } from "lucide-react"
+import Image from "next/image"
 
 // Demo examples with rich cultural contexts
 const DEMO_EXAMPLES = [
@@ -184,53 +185,53 @@ export default function Home() {
   }, [searchState.error])
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <main className="min-h-screen gradient-bg-subtle">
       {/* Header */}
-      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div className="rounded-lg bg-gradient-to-br from-primary to-primary/80 p-2">
-                  <TrendingUp className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold tracking-tight">
-                    Cultural Arbitrage Signal Engine
-                  </h1>
-                  <p className="text-xs text-muted-foreground">
-                    Trade the trend before it trends — with taste‑powered alpha
-                  </p>
-                </div>
-              </div>
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Image
+              src="/logo.png"
+              alt="Cultural Arbitrage Signal Engine"
+              width={40}
+              height={40}
+              className="rounded-lg"
+            />
+            <div>
+              <h1 className="text-lg font-semibold">
+                Cultural Arbitrage Signal Engine
+              </h1>
+              <p className="text-xs text-muted-foreground hidden sm:block">
+                Trade the trend before it trends
+              </p>
             </div>
-            <ThemeToggle />
           </div>
+          <ThemeToggle />
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-12">
-        <div className="max-w-4xl mx-auto space-y-12">
+      <div className="container py-12">
+        <div className="max-w-4xl mx-auto space-y-16">
           
           {/* Hero Section */}
           <div className="text-center space-y-8">
             <div className="space-y-4">
-              <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter">
+              <h2 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
                 Discover crypto opportunities through
-                <span className="block bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                <span className="block text-primary">
                   cultural intelligence
                 </span>
               </h2>
-              <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 Map emerging cultural vibes to Web3 investments. Enter any cultural trend, aesthetic, or vibe to discover aligned crypto and NFT opportunities.
               </p>
             </div>
 
             {/* Search Interface */}
             <div className="max-w-2xl mx-auto">
-              <SearchBar 
-                onSearch={handleSearch} 
+              <SearchBar
+                onSearch={handleSearch}
                 isLoading={searchState.isLoading}
                 placeholder="Enter cultural vibe to analyze... (e.g., solarpunk, Y2K revival)"
               />
@@ -241,27 +242,29 @@ export default function Home() {
           {!searchState.results && !searchState.isLoading && !searchState.error && (
             <div className="space-y-6">
               <div className="text-center">
-                <h3 className="text-xl font-semibold mb-2">Try these cultural vibes</h3>
+                <h3 className="text-2xl font-semibold mb-2">Try these cultural vibes</h3>
                 <p className="text-muted-foreground">Click any example to see our AI in action</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {DEMO_EXAMPLES.map((example) => (
                   <Card
                     key={example.vibe}
-                    className="group cursor-pointer border-2 hover:border-primary/50 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-background to-muted/20"
+                    className="group cursor-pointer border hover:shadow-lg hover:border-primary/50 transition-all duration-200"
                     onClick={() => handleExampleClick(example)}
                   >
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-primary" />
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-lg bg-primary/10 p-2">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                          </div>
                           <h4 className="font-semibold text-lg">{example.vibe}</h4>
                         </div>
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           {example.description}
                         </p>
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-2">
                           {example.tags.map((tag) => (
                             <Badge key={tag} variant="secondary" className="text-xs">
                               {tag}
@@ -336,22 +339,22 @@ export default function Home() {
           {/* Features Overview */}
           {!searchState.results && !searchState.isLoading && !searchState.error && (
             <>
-              <Separator className="my-12" />
+              <Separator className="my-16" />
               
               <div className="space-y-8">
                 <div className="text-center">
-                  <h3 className="text-2xl font-semibold mb-2">How It Works</h3>
-                  <p className="text-muted-foreground max-w-2xl mx-auto">
+                  <h3 className="text-3xl font-bold mb-4">How It Works</h3>
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                     Our AI-powered engine connects cultural intelligence with Web3 opportunities through a sophisticated multi-step analysis
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
+                  <Card className="border hover:shadow-lg hover:border-primary/50 transition-all duration-300">
                     <CardContent className="pt-6">
                       <div className="space-y-4">
-                        <div className="rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/10 p-3 w-fit">
-                          <Brain className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                        <div className="rounded-lg bg-primary/10 p-3 w-fit">
+                          <Brain className="h-8 w-8 text-primary" />
                         </div>
                         <div className="space-y-2">
                           <h3 className="text-xl font-semibold">Cultural Intelligence</h3>
@@ -363,11 +366,11 @@ export default function Home() {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
+                  <Card className="border hover:shadow-lg hover:border-primary/50 transition-all duration-300">
                     <CardContent className="pt-6">
                       <div className="space-y-4">
-                        <div className="rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/10 p-3 w-fit">
-                          <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
+                        <div className="rounded-lg bg-success/10 p-3 w-fit">
+                          <TrendingUp className="h-8 w-8 text-success" />
                         </div>
                         <div className="space-y-2">
                           <h3 className="text-xl font-semibold">Asset Discovery</h3>
@@ -379,11 +382,11 @@ export default function Home() {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
+                  <Card className="border hover:shadow-lg hover:border-primary/50 transition-all duration-300">
                     <CardContent className="pt-6">
                       <div className="space-y-4">
-                        <div className="rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/10 p-3 w-fit">
-                          <Zap className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                        <div className="rounded-lg bg-info/10 p-3 w-fit">
+                          <Zap className="h-8 w-8 text-info" />
                         </div>
                         <div className="space-y-2">
                           <h3 className="text-xl font-semibold">Interactive Analysis</h3>
@@ -402,11 +405,81 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-border/40 mt-20">
-        <div className="container mx-auto px-6 py-8">
-          <div className="text-center text-sm text-muted-foreground">
-            <p>Cultural Arbitrage Signal Engine • Alpha Version</p>
-            <p className="mt-1">Mapping cultural vibes to Web3 opportunities</p>
+      <footer className="border-t mt-16 bg-background/50 backdrop-blur-sm">
+        <div className="container py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Brand Section */}
+            <div className="md:col-span-2 space-y-4">
+              <div className="flex items-center space-x-3">
+                <Image
+                  src="/logo.png"
+                  alt="Cultural Arbitrage Signal Engine"
+                  width={40}
+                  height={40}
+                  className="rounded-lg"
+                />
+                <div>
+                  <h3 className="font-semibold text-lg">Cultural Arbitrage</h3>
+                  <p className="text-sm text-muted-foreground">Signal Engine</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+                Mapping cultural vibes to Web3 opportunities. Discover crypto and NFT investments through cultural intelligence and AI-powered analysis.
+              </p>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-muted-foreground">Alpha Version</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Quick Links */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Explore</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="hover:text-foreground transition-colors cursor-pointer">Cultural Trends</li>
+                <li className="hover:text-foreground transition-colors cursor-pointer">Asset Discovery</li>
+                <li className="hover:text-foreground transition-colors cursor-pointer">Market Analysis</li>
+                <li className="hover:text-foreground transition-colors cursor-pointer">Portfolio Builder</li>
+              </ul>
+            </div>
+            
+            {/* Connect */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Connect</h4>
+              <div className="flex space-x-4">
+                <button className="p-2 rounded-lg hover:bg-primary/10 transition-colors">
+                  <Twitter className="h-4 w-4" />
+                </button>
+                <button className="p-2 rounded-lg hover:bg-primary/10 transition-colors">
+                  <Github className="h-4 w-4" />
+                </button>
+                <button className="p-2 rounded-lg hover:bg-primary/10 transition-colors">
+                  <Globe className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Built for the Web3 economy
+              </p>
+            </div>
+          </div>
+          
+          {/* Bottom Section */}
+          <Separator className="my-8" />
+          <div className="flex flex-col md:flex-row justify-between items-center text-xs text-muted-foreground">
+            <div className="flex items-center space-x-1">
+              <span>Built with</span>
+              <Heart className="h-3 w-3 text-red-500" />
+              <span>for Qloo-Hackathon-2025</span>
+            </div>
+            <div className="flex items-center space-x-4 mt-4 md:mt-0">
+              <span>© 2025Cultural Arbitrage Signal Engine</span>
+              <span>•</span>
+              <span className="hover:text-foreground transition-colors cursor-pointer">Privacy</span>
+              <span>•</span>
+              <span className="hover:text-foreground transition-colors cursor-pointer">Terms</span>
+            </div>
           </div>
         </div>
       </footer>

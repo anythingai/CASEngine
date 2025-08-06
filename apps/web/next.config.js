@@ -18,12 +18,27 @@ const nextConfig = {
   },
   
   images: {
-    domains: [
-      'images.unsplash.com', 
-      'via.placeholder.com',
-      'assets.coingecko.com',
-      'openseadata.io',
-      'i.seadn.io'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'assets.coingecko.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'openseadata.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.seadn.io',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],

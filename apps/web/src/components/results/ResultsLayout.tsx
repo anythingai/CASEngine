@@ -72,70 +72,109 @@ export function ResultsLayout({ data, className }: ResultsLayoutProps) {
   }
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn("space-y-8", className)}>
       {/* Results Header */}
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">Cultural Intelligence Analysis</h2>
-        <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Brain className="h-4 w-4" />
-            Query: &quot;{data.query}&quot;
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {data.metadata.processingTime}ms
-          </div>
-          <div className="flex items-center gap-1">
-            <TrendingUp className="h-4 w-4" />
-            {Math.round(data.metadata.confidence * 100)}% confidence
+      <div className="text-center space-y-6">
+        <div className="space-y-4">
+          <h2 className="text-4xl font-bold gradient-text-cosmic">Cultural Intelligence Analysis</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            AI-powered insights from &quot;{data.query}&quot; mapped to Web3 opportunities
+          </p>
+        </div>
+        <div className="glass-card p-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center justify-center gap-3">
+              <div className="rounded-xl gradient-bg-cosmic p-2">
+                <Brain className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm text-muted-foreground">Processing Time</p>
+                <p className="font-bold text-lg">{data.metadata.processingTime}ms</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <div className="rounded-xl gradient-bg-aurora p-2">
+                <TrendingUp className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm text-muted-foreground">Confidence Score</p>
+                <p className="font-bold text-lg">{Math.round(data.metadata.confidence * 100)}%</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <div className="rounded-xl gradient-bg-cyberpunk p-2">
+                <DollarSign className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm text-muted-foreground">Opportunities</p>
+                <p className="font-bold text-lg">{data.assets?.length || 0}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="visualization" className="flex items-center gap-2">
-            <Network className="h-4 w-4" />
-            Network View
+        <TabsList className="glass-card grid w-full grid-cols-4 p-2 h-auto">
+          <TabsTrigger value="visualization" className="glass-button flex items-center gap-2 data-[state=active]:gradient-bg-cosmic data-[state=active]:text-white">
+            <Network className="h-5 w-5" />
+            <span className="hidden sm:inline">Network View</span>
+            <span className="sm:hidden">Network</span>
           </TabsTrigger>
-          <TabsTrigger value="assets" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Opportunities ({filteredAssets.length})
+          <TabsTrigger value="assets" className="glass-button flex items-center gap-2 data-[state=active]:gradient-bg-aurora data-[state=active]:text-white">
+            <DollarSign className="h-5 w-5" />
+            <span className="hidden sm:inline">Opportunities ({filteredAssets.length})</span>
+            <span className="sm:hidden">Assets</span>
           </TabsTrigger>
-          <TabsTrigger value="simulation" className="flex items-center gap-2">
-            <Calculator className="h-4 w-4" />
-            Portfolio Simulation
+          <TabsTrigger value="simulation" className="glass-button flex items-center gap-2 data-[state=active]:gradient-bg-cyberpunk data-[state=active]:text-white">
+            <Calculator className="h-5 w-5" />
+            <span className="hidden sm:inline">Portfolio</span>
+            <span className="sm:hidden">Portfolio</span>
           </TabsTrigger>
-          <TabsTrigger value="analysis" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analysis
+          <TabsTrigger value="analysis" className="glass-button flex items-center gap-2 data-[state=active]:gradient-bg-cosmic data-[state=active]:text-white">
+            <BarChart3 className="h-5 w-5" />
+            <span className="hidden sm:inline">Analysis</span>
+            <span className="sm:hidden">Analysis</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Network Visualization Tab */}
-        <TabsContent value="visualization" className="mt-6">
-          <TasteGraph 
-            data={data} 
-            onNodeClick={handleNodeClick}
-            height={500}
-            className="w-full"
-          />
+        <TabsContent value="visualization" className="mt-8">
+          <Card className="glass-card p-6">
+            <TasteGraph
+              data={data}
+              onNodeClick={handleNodeClick}
+              height={600}
+              className="w-full"
+            />
+          </Card>
         </TabsContent>
 
         {/* Assets Tab */}
-        <TabsContent value="assets" className="mt-6 space-y-4">
+        <TabsContent value="assets" className="mt-8 space-y-6">
           {/* Asset Filters */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Filter by type:</span>
-              <div className="flex gap-1">
+          <div className="glass-card p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl gradient-bg-aurora p-2">
+                  <Filter className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium">Filter by asset type</p>
+                  <p className="text-sm text-muted-foreground">Refine your search results</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant={selectedAssetType === null ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedAssetType(null)}
-                  className="h-7 px-2 text-xs"
+                  className={cn(
+                    "glass-button",
+                    selectedAssetType === null && "gradient-bg-cosmic text-white border-0"
+                  )}
                 >
                   All ({data.assets?.length || 0})
                 </Button>
@@ -147,7 +186,10 @@ export function ResultsLayout({ data, className }: ResultsLayoutProps) {
                       variant={selectedAssetType === type ? "default" : "outline"}
                       size="sm"
                       onClick={() => setSelectedAssetType(type)}
-                      className="h-7 px-2 text-xs"
+                      className={cn(
+                        "glass-button",
+                        selectedAssetType === type && "gradient-bg-aurora text-white border-0"
+                      )}
                     >
                       {type.replace('_', ' ')} ({count})
                     </Button>
@@ -156,24 +198,26 @@ export function ResultsLayout({ data, className }: ResultsLayoutProps) {
               </div>
             </div>
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className="h-7 px-2"
-            >
-              <GridIcon className="h-3 w-3 mr-1" />
-              {viewMode === 'grid' ? 'List' : 'Grid'}
-            </Button>
+            <div className="flex justify-end mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                className="glass-button"
+              >
+                <GridIcon className="h-4 w-4 mr-2" />
+                {viewMode === 'grid' ? 'List View' : 'Grid View'}
+              </Button>
+            </div>
           </div>
 
           {/* Assets Grid */}
           {filteredAssets.length > 0 ? (
             <div className={cn(
-              "gap-4",
-              viewMode === 'grid' 
-                ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3" 
-                : "space-y-4"
+              "gap-6",
+              viewMode === 'grid'
+                ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
+                : "space-y-6"
             )}>
               {filteredAssets.map((asset, index) => (
                 <div key={asset.symbol} id={`asset-${asset.symbol}`}>
@@ -182,19 +226,24 @@ export function ResultsLayout({ data, className }: ResultsLayoutProps) {
                     onExternalLink={handleExternalLink}
                     onAddToPortfolio={handleAddToPortfolio}
                     className={cn(
-                      "h-full transition-all duration-200",
-                      portfolioAssets.has(asset.symbol) && "ring-2 ring-primary/50"
+                      "h-full card-hover-neon",
+                      portfolioAssets.has(asset.symbol) && "ring-2 ring-neon/50 shadow-neon/20 shadow-2xl"
                     )}
                   />
                 </div>
               ))}
             </div>
           ) : (
-            <Card className="p-8 text-center">
+            <Card className="glass-card p-12 text-center">
               <CardContent>
-                <p className="text-muted-foreground">
-                  No assets found matching the selected criteria.
-                </p>
+                <div className="space-y-4">
+                  <div className="rounded-2xl gradient-bg-cosmic p-4 w-fit mx-auto">
+                    <DollarSign className="h-8 w-8 text-white" />
+                  </div>
+                  <p className="text-lg text-muted-foreground">
+                    No assets found matching the selected criteria
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}

@@ -15,6 +15,11 @@ export const metadata: Metadata = {
   keywords: ["web3", "crypto", "nft", "trends", "cultural-arbitrage", "intelligence"],
   authors: [{ name: "Cultural Arbitrage Team" }],
   creator: "Cultural Arbitrage Team",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
