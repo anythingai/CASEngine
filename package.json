@@ -48,5 +48,8 @@
     "cultural-arbitrage",
     "intelligence",
     "platform"
-  ]
+  ],
+  "dependencies": {
+    "sharp": "^0.34.3"
+  }
 }

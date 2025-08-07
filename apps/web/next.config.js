@@ -142,8 +142,7 @@ const nextConfig = {
     return config;
   },
   
-  // Output configuration for static exports if needed
-  output: 'standalone',
+  // Removed standalone output for monorepo compatibility
   
   // Environment-specific configuration
   ...(process.env.NODE_ENV === 'production' && {
