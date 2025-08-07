@@ -74,7 +74,7 @@ This is a **monorepo** built with:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/your-org/cultural-arbitrage.git
+   git clone https://github.com/anythingai/CASEngine.git
    cd cultural-arbitrage
    ```
 
@@ -223,8 +223,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 - **Documentation**: [Coming Soon]
 - **API Reference**: [Coming Soon]
-- **Issues**: [GitHub Issues](https://github.com/your-org/cultural-arbitrage/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/cultural-arbitrage/discussions)
+- **Issues**: [GitHub Issues](https://github.com/anythingai/CASEngine/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/anythingai/CASEngine/discussions)
 
 ---
 
