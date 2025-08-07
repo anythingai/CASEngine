@@ -79,22 +79,22 @@ export function SignalCard({ asset, onExternalLink, onAddToPortfolio, className 
     <Card className={cn("group glass-card", className)}>
       <CardHeader className="pb-6">
         <div className="flex items-start justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <h3 className="text-2xl font-bold">{asset.symbol}</h3>
+          <div className="space-y-3 min-w-0 flex-1">
+            <div className="flex items-center gap-3 min-w-0">
+              <h3 className="text-2xl font-bold truncate min-w-0 flex-1 max-w-[200px]">{asset.symbol}</h3>
               <Badge
-                className={cn("px-3 py-1 rounded-xl font-medium", BLOCKCHAIN_COLORS[asset.blockchain])}
+                className={cn("px-3 py-1 rounded-xl font-medium flex-shrink-0", BLOCKCHAIN_COLORS[asset.blockchain])}
               >
                 {asset.blockchain}
               </Badge>
             </div>
-            <p className="text-base text-muted-foreground font-medium">{asset.name}</p>
-            <Badge variant="secondary" className="w-fit px-3 py-1 rounded-xl font-medium">
+            <p className="text-base text-muted-foreground font-medium truncate max-w-full" title={asset.name}>{asset.name}</p>
+            <Badge variant="secondary" className="w-fit px-3 py-1 rounded-xl font-medium flex-shrink-0">
               {asset.type.replace('_', ' ')}
             </Badge>
           </div>
           
-          <div className="text-right space-y-3">
+          <div className="text-right space-y-3 flex-shrink-0">
             <div className="flex items-center gap-2">
               <div
                 className={cn("w-3 h-3 rounded-full", ACTION_COLORS[recommendation.action])}

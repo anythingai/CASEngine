@@ -33,7 +33,7 @@ graph TB
     Qloo -.-> QlooAPI[Qloo Taste AI]
     CoinGecko -.-> CoinGeckoAPI[CoinGecko API]
     OpenSea -.-> OpenSeaAPI[OpenSea API]
-    Social -.-> Twitter[Twitter/X API]
+    Social -.-> GoogleTrends[Google Trends API]
     Social -.-> Farcaster[Farcaster API]
     
     Orchestration --> Cache[Cache Service]

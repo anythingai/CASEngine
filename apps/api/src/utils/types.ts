@@ -38,50 +38,17 @@ export function getErrorMessage(error: unknown): string {
   return toErrorWithMessage(error).message;
 }
 
-// Twitter API response types (lightweight interfaces)
-export interface TwitterApiTrend {
-  name?: string;
-  query?: string;
-  tweet_volume?: number;
-  url?: string;
-  promoted_content?: boolean;
-  [key: string]: unknown;
-}
-
-export interface TwitterApiUser {
-  id?: string;
-  username?: string;
-  name?: string;
-  verified?: boolean;
-  public_metrics?: {
-    followers_count?: number;
-    [key: string]: unknown;
+// Google Trends API response types (lightweight interfaces)
+export interface GoogleTrendsData {
+  default?: {
+    timelineData?: Array<{
+      time?: string;
+      formattedTime?: string;
+      formattedAxisTime?: string;
+      value?: number[];
+      formattedValue?: string[];
+    }>;
   };
-  [key: string]: unknown;
-}
-
-export interface TwitterApiTweet {
-  id?: string;
-  text?: string;
-  created_at?: string;
-  author_id?: string;
-  public_metrics?: {
-    like_count?: number;
-    retweet_count?: number;
-    reply_count?: number;
-    impression_count?: number;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
-
-export interface TwitterSearchResponse {
-  data?: TwitterApiTweet[];
-  includes?: {
-    users?: TwitterApiUser[];
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
 }
 
 // Farcaster API types

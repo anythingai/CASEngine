@@ -223,7 +223,7 @@ export const CacheKeys = {
   collectionStats: (slug: string) => `opensea:stats:${slug}`,
   
   // Social media related
-  twitterTrends: (location?: string) => `twitter:trends:${location || 'global'}`,
+  googleTrends: (keyword: string, timeframe?: string) => `google:trends:${keyword}:${timeframe || 'today 12-m'}`,
   farcasterTrends: () => 'farcaster:trends',
   
   // Orchestration related

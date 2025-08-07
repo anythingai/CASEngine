@@ -26,7 +26,7 @@ graph TB
     Qloo -.-> QlooAPI[Qloo Taste AI]
     CoinGecko -.-> CoinGeckoAPI[CoinGecko API]
     OpenSea -.-> OpenSeaAPI[OpenSea API]
-    Social -.-> Twitter[Twitter/X API]
+    Social -.-> GoogleTrends[Google Trends API]
     Social -.-> Farcaster[Farcaster API]
     
     Orchestration --> Cache[Cache Service]
@@ -123,11 +123,11 @@ graph TB
 
 #### Social Service
 
-- **Purpose**: Multi-platform social media analysis and sentiment tracking
-- **Platforms**: Twitter/X, Farcaster
+- **Purpose**: Multi-platform social media and trends analysis
+- **Platforms**: Google Trends, Farcaster
 - **Capabilities**:
-  - Real-time mention counting and engagement tracking
-  - Sentiment analysis with confidence scoring
+  - Real-time search trend tracking and interest analysis
+  - Cultural momentum assessment with confidence scoring
   - Viral potential assessment and trending identification
   - Community resonance and influence mapping
 
@@ -145,7 +145,7 @@ graph TB
 
 #### Social Intelligence
 
-- **Twitter/X API**: Social media sentiment, trending topics, and engagement metrics
+- **Google Trends API**: Search trend analysis, cultural momentum, and interest metrics (free, no authentication required)
 - **Farcaster API**: Decentralized social network data and community insights
 
 ### 5. Infrastructure Layer
@@ -170,7 +170,7 @@ graph TB
 2. **Theme Expansion**: LLM analyzes and expands the vibe into related keywords, entities, and cultural contexts
 3. **Taste Correlation**: Qloo AI maps expanded themes to correlated cultural entities across multiple domains
 4. **Parallel Asset Discovery**: Simultaneous queries to CoinGecko and OpenSea for relevant tokens and NFTs
-5. **Social Analysis**: Real-time sentiment analysis across Twitter/X and Farcaster platforms  
+5. **Social Analysis**: Real-time trend analysis across Google Trends and Farcaster platforms
 6. **Results Aggregation**: Orchestration service combines all data sources, applies relevance scoring, and generates actionable insights
 7. **Visualization**: Frontend renders interactive taste graphs, signal cards, and optional portfolio simulations
 

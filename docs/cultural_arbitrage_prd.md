@@ -78,10 +78,10 @@
 
 1. **AI Theme Expansion** – LLM expands a user’s vibe (e.g., *“gothcore futurism”*) into related entities (films, music, subcultures).  
 2. **Qloo Taste Correlations** – Query Qloo to retrieve statistically correlated entities across domains.  
-3. **Multi‑Source Asset Scan** – Map expanded taste entities to:  
-   - **OpenSea** (collections/items by names/keywords)  
-   - **CoinGecko** (tokens by name/description; market data)  
-   - **Twitter/X & Farcaster** (trending mentions, high‑engagement posts)  
+3. **Multi‑Source Asset Scan** – Map expanded taste entities to:
+   - **OpenSea** (collections/items by names/keywords)
+   - **CoinGecko** (tokens by name/description; market data)
+   - **Google Trends & Farcaster** (trending search patterns, high‑engagement posts)
 4. **Taste Map Visualization** – Interactive graph linking **theme → cultural nodes → assets**.  
 5. **Signal Cards** – Asset cards with relevance rationale, basic metrics (price/volume/floor), and links out (OpenSea, CoinGecko).  
 6. **(Optional) Simulated Trade Log** – Quick “what‑if” basket/ROI simulation for selected assets.
@@ -139,9 +139,9 @@ Client (vibe) → /expand (LLM) → /taste (Qloo) → /assets (OpenSea/CoinGecko
 
 - **Qloo Taste AI** – correlated entities across culture domains.  
 - **OpenAI/Claude** – prompt‑engineered theme expansion; optional rationale text.  
-- **OpenSea** – search collections/items; basic market stats.  
-- **CoinGecko** – token search + price/volume/market cap + sparkline.  
-- **Twitter/X & Farcaster** – search mentions; count engagements; optional top posts.
+- **OpenSea** – search collections/items; basic market stats.
+- **CoinGecko** – token search + price/volume/market cap + sparkline.
+- **Google Trends & Farcaster** – trending search patterns; count engagements; optional top posts.
 
 **Key notes:**  
 
@@ -169,7 +169,7 @@ export type AssetMatch = {
   relevance: number;         // 0..1 composite score
   rationale: string;         // short “why included”
   metrics?: { price?: number; change24h?: number; volume24h?: number; floorEth?: number };
-  links?: { opensea?: string; coingecko?: string; website?: string; twitter?: string };
+  links?: { opensea?: string; coingecko?: string; website?: string; social?: string };
 };
 
 export type TrendResult = {
@@ -319,8 +319,8 @@ QLOO_API_KEY=...
 OPENAI_API_KEY=...
 OPENSEA_API_KEY=...
 COINGECKO_BASE=https://api.coingecko.com/api/v3
-TWITTER_BEARER=... (optional)
 FARCASTER_API_KEY=... (optional)
+# Note: Google Trends API requires no authentication
 ALLOWED_ORIGIN=https://your-frontend.app
 ```
 

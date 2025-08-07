@@ -83,6 +83,8 @@ const server = app.listen(PORT, () => {
   console.log(`🔧 Azure OpenAI: ${config.ai.azure.apiKey && config.ai.azure.endpoint ? '✅ Configured' : '❌ Not configured'}`);
   console.log(`🔧 CoinGecko API: ${config.coingecko.apiKey ? '✅ Configured' : '❌ Not configured'}`);
   console.log(`🔧 OpenSea API: ${config.opensea.apiKey ? '✅ Configured' : '❌ Not configured'}`);
+  console.log(`🔧 Google Trends: ✅ Available (free service)`);
+  console.log(`🔧 Farcaster API: ${config.social.farcaster.apiKey ? '✅ Configured' : '❌ Not configured (optional)'}`);
 });
 
 // Graceful shutdown

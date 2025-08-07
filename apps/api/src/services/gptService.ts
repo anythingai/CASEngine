@@ -40,15 +40,10 @@ export class GPTService extends BaseService {
   
   constructor() {
     const headers: Record<string, string> = {};
-    
-    // Fallback to regular OpenAI setup
-    if (config.ai.openai.apiKey) {
-      headers['Authorization'] = `Bearer ${config.ai.openai.apiKey}`;
-    }
 
-    super(config.ai.openai.baseURL, 'GPTService', headers);
+    super('', 'GPTService', headers);
     
-    // Initialize Azure OpenAI client after super() call
+    // Initialize Azure OpenAI client - now the only option
     if (config.ai.azure.apiKey && config.ai.azure.endpoint) {
       try {
         this.azureClient = new AzureOpenAI({
@@ -77,8 +72,8 @@ export class GPTService extends BaseService {
     
     const response = await this.makeGPTRequest({
       prompt,
-      maxTokens: this.azureClient ? config.ai.azure.maxTokens : config.ai.openai.maxTokens,
-      temperature: 0.7,
+      maxTokens: config.ai.azure.maxTokens,
+      // Temperature handled automatically by makeGPTRequest (1.0 for Azure)
     });
 
     const expansion = this.parseThemeExpansionResponse(theme, response.content);
@@ -105,7 +100,7 @@ export class GPTService extends BaseService {
     const response = await this.makeGPTRequest({
       prompt,
       maxTokens: 2000,
-      temperature: 0.5,
+      // Temperature handled automatically by makeGPTRequest
     });
 
     return this.parseCulturalAnalysisResponse(response.content);
@@ -129,88 +124,52 @@ export class GPTService extends BaseService {
     const response = await this.makeGPTRequest({
       prompt,
       maxTokens: 1500,
-      temperature: 0.4,
+      // Temperature handled automatically by makeGPTRequest
     });
 
     return this.parseAssetSummaryResponse(response.content);
   }
 
   private async makeGPTRequest(request: GPTRequest): Promise<GPTResponse> {
-    // Try Azure OpenAI first if available
-    if (this.azureClient && config.ai.azure.apiKey && config.ai.azure.endpoint) {
-      try {
-        // Azure OpenAI o4-mini only supports temperature = 1.0
-        const azureRequestParams: any = {
-          model: config.ai.azure.model,
-          messages: [
-            {
-              role: 'user',
-              content: request.prompt
-            }
-          ],
-          max_completion_tokens: request.maxTokens || config.ai.azure.maxTokens,
-          temperature: 1.0, // o4-mini only supports temperature=1.0
-        };
-
-        // Warn if a different temperature was requested
-        if (request.temperature && request.temperature !== 1.0) {
-          console.warn(`Azure OpenAI o4-mini only supports temperature=1.0, ignoring requested temperature=${request.temperature}`);
-        }
-
-        const response = await this.azureClient.chat.completions.create(azureRequestParams);
-
-        const choice = response.choices?.[0];
-        if (!choice) {
-          throw new Error('No response from Azure OpenAI API');
-        }
-
-        return {
-          content: choice.message?.content || '',
-          usage: {
-            promptTokens: response.usage?.prompt_tokens || 0,
-            completionTokens: response.usage?.completion_tokens || 0,
-            totalTokens: response.usage?.total_tokens || 0,
-          },
-          finishReason: choice.finish_reason || 'unknown',
-        };
-      } catch (azureError) {
-        console.error('Azure OpenAI API error, falling back to regular OpenAI:', azureError);
-        
-        // Fall through to regular OpenAI if Azure fails
-      }
+    // Use Azure OpenAI only
+    if (!this.azureClient || !config.ai.azure.apiKey || !config.ai.azure.endpoint) {
+      throw new Error('Azure OpenAI is not configured. Please set AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, and related environment variables.');
     }
 
-    // Fallback to regular OpenAI
-    if (!config.ai.openai.apiKey) {
-      throw new Error('Neither Azure OpenAI nor regular OpenAI API key is configured');
-    }
-
-    const response = await this.makeRequest({
-      method: 'POST',
-      url: '/chat/completions',
-      data: {
-        model: request.model || config.ai.openai.model,
+    try {
+      // Azure OpenAI o4-mini only supports temperature = 1.0
+      const azureRequestParams: any = {
+        model: config.ai.azure.model,
         messages: [
           {
             role: 'user',
             content: request.prompt
           }
         ],
-        max_tokens: request.maxTokens || config.ai.openai.maxTokens,
-        temperature: request.temperature || 0.7,
-      },
-    });
+        max_completion_tokens: request.maxTokens || config.ai.azure.maxTokens,
+        temperature: 1.0, // o4-mini only supports temperature=1.0
+      };
 
-    const choice = (response.data as any).choices?.[0];
-    if (!choice) {
-      throw new Error('No response from OpenAI API');
+      const response = await this.azureClient.chat.completions.create(azureRequestParams);
+
+      const choice = response.choices?.[0];
+      if (!choice) {
+        throw new Error('No response from Azure OpenAI API');
+      }
+
+      return {
+        content: choice.message?.content || '',
+        usage: {
+          promptTokens: response.usage?.prompt_tokens || 0,
+          completionTokens: response.usage?.completion_tokens || 0,
+          totalTokens: response.usage?.total_tokens || 0,
+        },
+        finishReason: choice.finish_reason || 'unknown',
+      };
+    } catch (azureError) {
+      console.error('Azure OpenAI API error:', azureError);
+      throw new Error(`Azure OpenAI request failed: ${(azureError as any).message || azureError}`);
     }
-
-    return {
-      content: choice.message.content,
-      usage: (response.data as any).usage,
-      finishReason: choice.finish_reason,
-    };
   }
 
   private buildThemeExpansionPrompt(theme: string): string {

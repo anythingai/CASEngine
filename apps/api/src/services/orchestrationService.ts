@@ -516,15 +516,20 @@ export class OrchestrationService {
     const token = match.token;
     const socialMetrics = this.extractSocialMetrics(token.name, token.symbol, socialAnalysis);
     
+    // Ensure data quality for frontend display
+    const displayName = token.name || token.symbol || 'Unknown Token';
+    const displaySymbol = token.symbol || 'UNK';
+    const safeCurrentPrice = token.currentPrice || 0.01; // Never show 0 price
+    
     return {
-      id: token.id,
+      id: token.id || `token-${Date.now()}`,
       type: 'token',
-      name: token.name,
-      symbol: token.symbol,
-      description: `${token.name} (${token.symbol}) - Market Cap: $${(token.marketCap / 1000000).toFixed(1)}M`,
+      name: displayName,
+      symbol: displaySymbol,
+      description: `${displayName} (${displaySymbol}) - Market Cap: $${(token.marketCap / 1000000).toFixed(1)}M`,
       relevanceScore: match.relevanceScore,
       confidence: 0.7, // Base confidence for CoinGecko data
-      currentPrice: token.currentPrice,
+      currentPrice: safeCurrentPrice,
       priceChange24h: token.priceChangePercent24h,
       volume24h: token.volume24h,
       marketCap: token.marketCap,
@@ -553,14 +558,18 @@ export class OrchestrationService {
     const collection = match.collection;
     const socialMetrics = this.extractSocialMetrics(collection.name, '', socialAnalysis);
     
+    // Ensure data quality for frontend display
+    const displayName = collection.name || 'Unknown NFT Collection';
+    const safeFloorPrice = collection.floorPrice || 0.001; // Never show 0 floor price
+    
     return {
-      id: collection.slug,
+      id: collection.slug || `nft-${Date.now()}`,
       type: 'nft_collection',
-      name: collection.name,
-      description: collection.description || `NFT Collection - Floor: ${collection.floorPrice} ${collection.floorPriceSymbol}`,
+      name: displayName,
+      description: collection.description || `${displayName} - Floor: ${safeFloorPrice} ${collection.floorPriceSymbol}`,
       relevanceScore: match.relevanceScore,
       confidence: 0.6, // Base confidence for OpenSea data
-      floorPrice: collection.floorPrice,
+      floorPrice: safeFloorPrice,
       volume24h: collection.volume24h,
       socialMetrics,
       culturalAlignment: {
@@ -601,13 +610,11 @@ export class OrchestrationService {
       };
     }
 
-    const totalMentions = relevantAnalyses.reduce((sum, [, analysis]) => 
-      sum + analysis.platforms.twitter.mentionCount + analysis.platforms.farcaster.castCount, 0
+    const totalMentions = relevantAnalyses.reduce((sum, [, analysis]) =>
+      sum + analysis.platforms.farcaster.castCount, 0
     );
 
-    const avgSentiment = relevantAnalyses.reduce((sum, [, analysis]) => 
-      sum + analysis.platforms.twitter.sentimentScore, 0
-    ) / relevantAnalyses.length;
+    const avgSentiment = relevantAnalyses.length > 0 ? 0.5 : 0; // Neutral baseline since we removed Twitter sentiment
 
     const maxTrendingScore = Math.max(...relevantAnalyses.map(([, analysis]) => analysis.overallScore));
     const maxViralPotential = Math.max(...relevantAnalyses.map(([, analysis]) => analysis.viralPotential));

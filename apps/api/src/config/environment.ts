@@ -33,12 +33,7 @@ const envSchema = z.object({
   COINGECKO_API_KEY: z.string().optional(),
   OPENSEA_API_KEY: z.string().optional(),
   
-  // Social Media APIs
-  TWITTER_API_KEY: z.string().optional(),
-  TWITTER_API_SECRET: z.string().optional(),
-  TWITTER_BEARER_TOKEN: z.string().optional(),
-  TWITTER_ACCESS_TOKEN: z.string().optional(),
-  TWITTER_ACCESS_TOKEN_SECRET: z.string().optional(),
+  // Social Media APIs (Google Trends is free and requires no API key)
   FARCASTER_API_KEY: z.string().optional(),
   
   // Cache Configuration
@@ -138,18 +133,22 @@ export const config = {
   
   // Social Media APIs
   social: {
-    twitter: {
-      apiKey: env.TWITTER_API_KEY,
-      apiSecret: env.TWITTER_API_SECRET,
-      bearerToken: env.TWITTER_BEARER_TOKEN,
-      accessToken: env.TWITTER_ACCESS_TOKEN,
-      accessTokenSecret: env.TWITTER_ACCESS_TOKEN_SECRET,
-      baseURL: 'https://api.twitter.com/2',
+    // Google Trends API - completely free, no configuration needed
+    trends: {
+      baseURL: 'https://trends.google.com',
       timeout: 10000,
     },
     farcaster: {
       apiKey: env.FARCASTER_API_KEY,
       baseURL: 'https://api.neynar.com/v2',
+      timeout: 10000,
+    },
+    // Free Farcaster data sources
+    farcasterFree: {
+      // Public Warpcast API (free tier)
+      warpcast: 'https://api.warpcast.com/v2',
+      // Farcaster Hub (direct protocol access, free)
+      hub: 'https://hub-api.neynar.com/v1',
       timeout: 10000,
     },
   },

@@ -1,6 +1,7 @@
 import { BaseService } from './base';
 import { config } from '@/config/environment';
 import { cacheService, CacheKeys } from './cacheService';
+import { GPTService } from './gptService';
 
 export interface QlooTasteProfile {
   keywords: string[];
@@ -37,6 +38,8 @@ export interface QlooRecommendation {
 }
 
 export class QlooService extends BaseService {
+  private gptService: GPTService;
+
   constructor() {
     const headers: Record<string, string> = {};
     
@@ -46,6 +49,7 @@ export class QlooService extends BaseService {
     }
 
     super(config.qloo.baseURL, 'QlooService', headers);
+    this.gptService = new GPTService();
   }
 
   async getTasteCorrelations(
@@ -94,8 +98,8 @@ export class QlooService extends BaseService {
 
       return recommendation;
     } catch (error) {
-      console.warn('[QlooService] API call failed, using fallback:', (error as any).message || error);
-      return this.generateFallbackRecommendation(culturalTheme, keywords, categories);
+      console.warn('[QlooService] API call failed, using AI fallback:', (error as any).message || error);
+      return this.generateAIFallbackRecommendation(culturalTheme, keywords, categories);
     }
   }
 
@@ -239,21 +243,101 @@ export class QlooService extends BaseService {
     return { brands };
   }
 
-  // Fallback method when Qloo API is unavailable
-  private generateFallbackRecommendation(
+  // AI-powered fallback method when Qloo API is unavailable
+  private async generateAIFallbackRecommendation(
+    culturalTheme: string,
+    keywords: string[],
+    categories: string[]
+  ): Promise<QlooRecommendation> {
+    console.warn('[QlooService] Using AI-powered fallback recommendation generation');
+    
+    try {
+      const context = `Generate taste correlations and cultural insights for the theme "${culturalTheme}" with focus on crypto/NFT relevance, demographic analysis, and trending factors.`;
+      
+      const analysis = await this.gptService.generateCulturalAnalysis(keywords, context);
+      
+      return this.transformAnalysisToTasteProfile(analysis, culturalTheme, keywords, categories);
+    } catch (aiError) {
+      console.warn('[QlooService] AI fallback failed, using basic fallback:', aiError);
+      return this.generateBasicFallbackRecommendation(culturalTheme, keywords, categories);
+    }
+  }
+
+  private transformAnalysisToTasteProfile(
+    analysis: any,
     culturalTheme: string,
     keywords: string[],
     categories: string[]
   ): QlooRecommendation {
-    console.warn('[QlooService] Using fallback recommendation generation');
+    // Transform the cultural analysis into taste correlations
+    const recommendations: QlooCorrelation[] = [];
     
-    // Generate basic correlations based on keywords
+    // Generate correlations from opportunities
+    (analysis.opportunities || []).slice(0, 8).forEach((opportunity: string, index: number) => {
+      recommendations.push({
+        item: opportunity,
+        category: categories[index % categories.length] || 'general',
+        relevanceScore: Math.max(60, analysis.culturalSignificance || 75),
+        confidenceLevel: 0.8,
+        reasoning: `AI-identified cultural opportunity: ${opportunity}`,
+        demographicMatch: Math.max(70, analysis.trendPotential || 70),
+        culturalAlignment: analysis.culturalSignificance || 75,
+        trendingFactor: analysis.trendPotential || 70,
+      });
+    });
+
+    // Add keyword-based correlations if we need more
+    keywords.slice(0, 4).forEach((keyword, index) => {
+      if (recommendations.length < 10) {
+        recommendations.push({
+          item: `${keyword} culture`,
+          category: categories[index % categories.length] || 'lifestyle',
+          relevanceScore: Math.max(65, 85 - index * 5),
+          confidenceLevel: 0.75,
+          reasoning: `Core cultural keyword: ${keyword}`,
+          demographicMatch: 75,
+          culturalAlignment: 80,
+          trendingFactor: Math.max(60, 80 - index * 5),
+        });
+      }
+    });
+
+    const tasteProfile: QlooTasteProfile = {
+      keywords,
+      categories: categories.length > 0 ? categories : ['entertainment', 'fashion', 'technology', 'art'],
+      demographics: {
+        ageRange: '18-34',
+        interests: keywords.slice(0, 5),
+        behaviors: ['social_media_active', 'trend_following', 'early_adopter'],
+      },
+      culturalAffinities: [culturalTheme],
+      brandAffinities: [],
+      contentPreferences: categories.length > 0 ? categories : ['digital_art', 'tech_innovation', 'cultural_movements'],
+    };
+
+    return {
+      recommendations,
+      tasteProfile,
+      metadata: {
+        totalAnalyzed: recommendations.length,
+        processingTime: 150,
+        algorithmVersion: 'ai-cultural-analysis-1.0.0',
+      },
+    };
+  }
+
+  // Basic fallback as last resort
+  private generateBasicFallbackRecommendation(
+    culturalTheme: string,
+    keywords: string[],
+    categories: string[]
+  ): QlooRecommendation {
     const recommendations: QlooCorrelation[] = keywords.slice(0, 10).map((keyword, index) => ({
       item: keyword,
       category: categories[index % categories.length] || 'general',
       relevanceScore: Math.max(60, 90 - index * 5),
       confidenceLevel: 0.6,
-      reasoning: 'Keyword-based correlation (fallback)',
+      reasoning: 'Keyword-based correlation (basic fallback)',
       demographicMatch: 70,
       culturalAlignment: 65,
       trendingFactor: Math.max(50, 80 - index * 3),
@@ -278,7 +362,7 @@ export class QlooService extends BaseService {
       metadata: {
         totalAnalyzed: recommendations.length,
         processingTime: 100,
-        algorithmVersion: 'fallback-1.0.0',
+        algorithmVersion: 'basic-fallback-1.0.0',
       },
     };
   }
