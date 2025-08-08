@@ -62,21 +62,42 @@ interface SimulationResult {
 
 // Request validation schema
 const simulateRequestSchema = z.object({
-  vibe: z.string()
-    .min(1, 'Vibe/theme is required')
-    .max(200, 'Vibe must be less than 200 characters'),
-  portfolioSize: z.number()
+  // Accept missing or empty vibe and default in production; trim whitespace
+  vibe: z.preprocess(
+    (v) => {
+      if (typeof v === 'string') {
+        const t = v.trim();
+        return t.length === 0 ? undefined : t;
+      }
+      return v;
+    },
+    z.string()
+      .min(1, 'Vibe/theme is required')
+      .max(200, 'Vibe must be less than 200 characters')
+  ).optional().default('trend'),
+  // Coerce numbers from strings
+  portfolioSize: z.coerce.number()
     .positive('Portfolio size must be positive')
     .max(1000000, 'Portfolio size too large')
     .describe('Portfolio size in USD'),
-  riskTolerance: z.enum(['conservative', 'moderate', 'aggressive']).optional().default('moderate'),
-  timeHorizon: z.enum(['1m', '3m', '6m', '1y', '2y']).optional().default('6m'),
+  // Normalize case for enums
+  riskTolerance: z.preprocess(
+    (s) => typeof s === 'string' ? s.toLowerCase() : s,
+    z.enum(['conservative', 'moderate', 'aggressive']).optional().default('moderate')
+  ),
+  timeHorizon: z.preprocess(
+    (s) => typeof s === 'string' ? s.toLowerCase() : s,
+    z.enum(['1m', '3m', '6m', '1y', '2y']).optional().default('6m')
+  ),
   options: z.object({
-    maxAssets: z.number().int().positive().max(20).optional().default(10),
-    includeNFTs: z.boolean().optional().default(true),
-    includeTokens: z.boolean().optional().default(true),
-    rebalanceFrequency: z.enum(['never', 'monthly', 'quarterly']).optional().default('quarterly'),
-    useCache: z.boolean().optional().default(true),
+    maxAssets: z.coerce.number().int().positive().max(20).optional().default(10),
+    includeNFTs: z.coerce.boolean().optional().default(true),
+    includeTokens: z.coerce.boolean().optional().default(true),
+    rebalanceFrequency: z.preprocess(
+      (s) => typeof s === 'string' ? s.toLowerCase() : s,
+      z.enum(['never', 'monthly', 'quarterly']).optional().default('quarterly')
+    ),
+    useCache: z.coerce.boolean().optional().default(true),
   }).optional().default({}),
 });
 
@@ -85,23 +106,115 @@ const simulateRequestSchema = z.object({
  * Simulate portfolio performance based on cultural arbitrage signals
  */
 router.post('/', asyncHandler(async (req: Request, res: Response): Promise<Response> => {
-  // Validate request body
-  const validationResult = simulateRequestSchema.safeParse(req.body);
-  
-  if (!validationResult.success) {
-    const response: ApiErrorResponse = {
-      error: {
-        message: 'Invalid request data',
-        statusCode: 400,
-        code: 'VALIDATION_ERROR',
-        details: validationResult.error.flatten(),
-      },
-      timestamp: new Date().toISOString(),
-    };
-    return res.status(400).json(response);
+  // Robust body handling for production proxies
+  let rawBody: unknown = req.body;
+  if (typeof rawBody === 'string') {
+    try {
+      rawBody = JSON.parse(rawBody);
+    } catch {
+      // leave as-is; zod will handle failure
+    }
   }
 
-  const { vibe, portfolioSize, riskTolerance, timeHorizon, options } = validationResult.data;
+  // First-pass strict validation
+  let parsed = simulateRequestSchema.safeParse(rawBody);
+  let payload: z.infer<typeof simulateRequestSchema>;
+
+  if (!parsed.success) {
+    // Diagnostics for deployment
+    const contentType = req.headers['content-type'];
+    const safeBodySample = (() => {
+      try { return JSON.stringify(rawBody).slice(0, 500); } catch { return 'unserializable'; }
+    })();
+    const bodyKeys = rawBody && typeof rawBody === 'object' ? Object.keys(rawBody as Record<string, unknown>) : typeof rawBody;
+
+    console.warn('[Simulate] Validation failed', {
+      contentType,
+      bodyKeys,
+      bodySample: safeBodySample,
+      details: parsed.error.flatten(),
+    });
+
+    // Relaxed salvage: coerce common fields and supply defaults
+    const relaxedSchema = z.object({
+      vibe: z.preprocess(v => typeof v === 'string' ? v.trim() : v, z.string().min(1)).optional(),
+      portfolioSize: z.coerce.number().positive().max(1000000).optional(),
+      riskTolerance: z.preprocess(s => typeof s === 'string' ? s.toLowerCase() : s, z.enum(['conservative', 'moderate', 'aggressive']).optional()),
+      timeHorizon: z.preprocess(s => typeof s === 'string' ? s.toLowerCase() : s, z.enum(['1m', '3m', '6m', '1y', '2y']).optional()),
+      options: z.any().optional(),
+    });
+
+    const relaxed = relaxedSchema.safeParse(rawBody);
+    if (relaxed.success) {
+      const relaxedOptions = typeof relaxed.data.options === 'object' && relaxed.data.options
+        ? relaxed.data.options as Record<string, unknown>
+        : {};
+
+      const assembled = {
+        vibe: relaxed.data.vibe ?? 'trend',
+        portfolioSize: relaxed.data.portfolioSize ?? 10000,
+        riskTolerance: relaxed.data.riskTolerance ?? 'moderate',
+        timeHorizon: relaxed.data.timeHorizon ?? '6m',
+        options: {
+          maxAssets: typeof relaxedOptions['maxAssets'] !== 'undefined' ? Number(relaxedOptions['maxAssets']) : 10,
+          includeNFTs: typeof relaxedOptions['includeNFTs'] !== 'undefined' ? Boolean(relaxedOptions['includeNFTs']) : true,
+          includeTokens: typeof relaxedOptions['includeTokens'] !== 'undefined' ? Boolean(relaxedOptions['includeTokens']) : true,
+          rebalanceFrequency: (() => {
+            const rf = String(relaxedOptions['rebalanceFrequency'] ?? 'quarterly').toLowerCase();
+            return (['never','monthly','quarterly'] as const).includes(rf as any) ? rf as 'never'|'monthly'|'quarterly' : 'quarterly';
+          })(),
+          useCache: typeof relaxedOptions['useCache'] !== 'undefined' ? Boolean(relaxedOptions['useCache']) : true,
+        }
+      };
+
+      const revalidate = simulateRequestSchema.safeParse(assembled);
+      if (revalidate.success) {
+        payload = revalidate.data;
+        console.log('[Simulate] Recovered request via relaxed parse');
+      } else {
+        const response: ApiErrorResponse = {
+          error: {
+            message: 'Invalid request data',
+            statusCode: 400,
+            code: 'VALIDATION_ERROR',
+            details: revalidate.error.flatten(),
+          },
+          timestamp: new Date().toISOString(),
+        };
+        return res.status(400).json(response);
+      }
+    } else {
+      const response: ApiErrorResponse = {
+        error: {
+          message: 'Invalid request data',
+          statusCode: 400,
+          code: 'VALIDATION_ERROR',
+          details: parsed.error.flatten(),
+        },
+        timestamp: new Date().toISOString(),
+      };
+      return res.status(400).json(response);
+    }
+  } else {
+    payload = parsed.data;
+  }
+
+  const { vibe, portfolioSize, riskTolerance, timeHorizon, options } = payload;
+
+  // Deployment diagnostics: confirm accepted payload shape (no PII)
+  console.log('[Simulate] Request accepted', {
+    vibeLength: (vibe || '').length,
+    portfolioSize,
+    riskTolerance,
+    timeHorizon,
+    options: {
+      maxAssets: options?.maxAssets,
+      includeNFTs: options?.includeNFTs,
+      includeTokens: options?.includeTokens,
+      rebalanceFrequency: options?.rebalanceFrequency,
+      useCache: options?.useCache,
+    }
+  });
 
   try {
     const startTime = Date.now();
