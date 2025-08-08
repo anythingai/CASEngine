@@ -249,6 +249,12 @@
   .gradient-text-cosmic {
     background: var(--gradient-cosmic);
     @apply bg-clip-text text-transparent;
+    /* Ensure gradient text paints fully and doesn't get clipped */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block; /* allow descenders to render outside line box if needed */
+    overflow: visible;     /* prevent clipping on large sizes */
+    padding-bottom: 0.1em; /* add breathing room for descenders */
   }
   
   .gradient-text-aurora {
@@ -377,6 +383,57 @@
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+/* Hero Aurora background with soft radial glows */
+  .hero-aurora {
+    position: relative;
+    overflow: visible; /* prevent large heading from being clipped */
+    isolation: isolate; /* keep pseudo-elements behind content */
+  }
+
+  .hero-aurora::before,
+  .hero-aurora::after {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Primary glow bottom-left */
+  .hero-aurora::before {
+    width: 60vw;
+    height: 60vw;
+    left: -10%;
+    bottom: 5%;
+    background: radial-gradient(closest-side, hsl(var(--primary) / 0.35), transparent 70%);
+  }
+
+  /* Success glow top-right */
+  .hero-aurora::after {
+    width: 50vw;
+    height: 50vw;
+    right: -10%;
+    top: -10%;
+    background: radial-gradient(closest-side, hsl(var(--success) / 0.25), transparent 70%);
+  }
+
+  @media (max-width: 640px) {
+    .hero-aurora::before {
+      width: 90vw;
+      height: 90vw;
+      left: -20%;
+      bottom: -5%;
+      filter: blur(70px);
+    }
+    .hero-aurora::after {
+      width: 80vw;
+      height: 80vw;
+      right: -20%;
+      top: -20%;
+      filter: blur(70px);
     }
   }
 }

@@ -248,38 +248,44 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <div className="container py-12">
-        <div className="max-w-4xl mx-auto space-y-16">
+      <div className="container pt-0 pb-10">
+        <div className="max-w-4xl mx-auto space-y-8 md:space-y-10">
           
           {/* Hero Section */}
-          <div className="text-center space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+          <section className="relative text-center space-y-8 min-h-[calc(100dvh-64px)] flex flex-col items-center justify-center hero-aurora pt-6 pb-8 md:pt-10 md:pb-10">
+            <div className="space-y-4 px-4 relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/40 text-xs mx-auto">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span className="font-medium">Beta Version</span>
+                <span className="text-muted-foreground">Using Qloo</span>
+              </div>
+              <h2 className="text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl leading-[1.15] md:leading-[1.1]">
                 Discover crypto opportunities through
-                <span className="block text-primary">
+                <span className="block gradient-text-cosmic pb-1">
                   cultural intelligence
                 </span>
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 Map emerging cultural vibes to Web3 investments. Enter any cultural trend, aesthetic, or vibe to discover aligned crypto and NFT opportunities.
               </p>
             </div>
 
             {/* Search Interface */}
-            <div className="max-w-2xl mx-auto">
+            <div className="w-full max-w-2xl mx-auto px-4 relative z-10 glass p-2 sm:p-3 rounded-2xl shadow-lg">
               <SearchBar
                 onSearch={handleSearch}
                 isLoading={searchState.isLoading}
                 placeholder="Enter cultural vibe to analyze... (e.g., solarpunk, Y2K revival)"
               />
             </div>
-          </div>
+
+          </section>
 
           {/* Demo Examples */}
           {!searchState.results && !searchState.isLoading && !searchState.error && (
-            <div className="space-y-6">
+            <div className="space-y-6" id="examples">
               <div className="text-center">
-                <h3 className="text-2xl font-semibold mb-2">Try these cultural vibes</h3>
+                <h3 className="text-2xl sm:text-3xl font-semibold mb-2">Try these cultural vibes</h3>
                 <p className="text-muted-foreground">Click any example to see our AI in action</p>
               </div>
               
@@ -376,17 +382,15 @@ export default function Home() {
           {/* Features Overview */}
           {!searchState.results && !searchState.isLoading && !searchState.error && (
             <>
-              <Separator className="my-16" />
-              
-              <div className="space-y-8">
+              <div className="space-y-6 md:space-y-8" id="how-it-works">
                 <div className="text-center">
-                  <h3 className="text-3xl font-bold mb-4">How It Works</h3>
-                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  <h3 className="text-3xl sm:text-4xl font-bold mb-4">How It Works</h3>
+                  <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
                     Our AI-powered engine connects cultural intelligence with Web3 opportunities through a sophisticated multi-step analysis
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Card className="border hover:shadow-lg hover:border-primary/50 transition-all duration-300">
                     <CardContent className="pt-6">
                       <div className="space-y-4">
@@ -442,7 +446,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t mt-16 bg-background/50 backdrop-blur-sm">
+      <footer className="border-t mt-12 bg-background/50 backdrop-blur-sm">
         <div className="container py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand Section */}
@@ -466,7 +470,7 @@ export default function Home() {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-muted-foreground">Alpha Version</span>
+                  <span className="text-xs text-muted-foreground">Beta Version</span>
                 </div>
               </div>
             </div>
