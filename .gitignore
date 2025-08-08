@@ -230,3 +230,12 @@ dump.rdb
 # Local storage for development
 local-storage/
 dev-storage/
+
+# Azure credentials file (if used)
+AZURE_CREDENTIALS.json
+
+# Allow example env templates to be committed
+!.env.example
+!.env.*.example
+!apps/api/.env.local.example
+!apps/web/.env.local.example

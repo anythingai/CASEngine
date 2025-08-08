@@ -1,0 +1,96 @@
+# Cultural Arbitrage - Production Docker Compose
+# Mirrors npm start behavior inside a single container (API serves frontend)
+# Usage: docker compose -f docker-compose.prod.yml up --build
+
+version: '3.8'
+
+services:
+  cultural-arbitrage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cultural-arbitrage:local-prod
+    container_name: cultural-arbitrage-prod
+    ports:
+      - "8000:8000"
+    environment:
+      # Server Configuration
+      - NODE_ENV=production
+      - PORT=8000
+      - LOG_LEVEL=info
+
+      # Frontend serving (same as npm start target behavior for Docker)
+      - SERVE_STATIC_FRONTEND=true
+      - FRONTEND_URL=http://localhost:3000 # unused when SERVE_STATIC_FRONTEND=true
+
+      # CORS Configuration (for local testing)
+      - ENABLE_CORS=true
+      - CORS_ORIGINS=http://localhost:8000
+
+      # Authentication & Security
+      - JWT_SECRET=${JWT_SECRET:-local-test-jwt-secret}
+      - API_KEY=${API_KEY:-local-test-api-key}
+      
+      # Azure OpenAI Services
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_DEPLOYMENT=${AZURE_OPENAI_DEPLOYMENT:-o4-mini}
+      - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION:-2025-01-01-preview}
+      
+      # Crypto/NFT APIs
+      - COINGECKO_API_KEY=${COINGECKO_API_KEY}
+      - OPENSEA_API_KEY=${OPENSEA_API_KEY}
+      
+      # Farcaster API
+      - FARCASTER_API_KEY=${FARCASTER_API_KEY}
+      
+      # Qloo Taste AI (Optional)
+      - QLOO_API_KEY=${QLOO_API_KEY}
+      - QLOO_API_URL=${QLOO_API_URL}
+      
+      # Cache Configuration
+      - CACHE_TTL_SHORT=600
+      - CACHE_TTL_MEDIUM=3600
+      - CACHE_TTL_LONG=7200
+      
+      # Rate Limiting
+      - ENABLE_RATE_LIMITING=true
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=200
+      
+      # Performance Configuration
+      - ENABLE_COMPRESSION=true
+      - MAX_REQUEST_SIZE=10mb
+      - REQUEST_TIMEOUT=30000
+      
+      # Health Check Configuration
+      - HEALTH_CHECK_INTERVAL=30000
+      
+      # Next.js public config (leave API URL unset for same-origin /api)
+      - NEXT_PUBLIC_APP_NAME=Cultural Arbitrage Signal Engine
+      - NEXT_PUBLIC_APP_TAGLINE=Trade the trend before it trends — with taste‑powered alpha
+      - NEXT_PUBLIC_ENABLE_DEBUG=false
+      - NEXT_PUBLIC_DEFAULT_THEME=dark
+      
+    env_file:
+      - ./apps/api/.env
+    volumes:
+      # Optional: mount logs directory for debugging
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - cultural-arbitrage-network
+
+networks:
+  cultural-arbitrage-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local

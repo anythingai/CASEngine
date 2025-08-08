@@ -9,6 +9,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default('8000'),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
+  FRONTEND_URL: z.string().default('http://localhost:3000'),
   API_KEY: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   REDIS_URL: z.string().optional(),
@@ -50,6 +51,7 @@ const envSchema = z.object({
   ENABLE_LOGGING: z.string().transform(val => val === 'true').default('true'),
   ENABLE_CORS: z.string().transform(val => val === 'true').default('true'),
   ENABLE_COMPRESSION: z.string().transform(val => val === 'true').default('false'),
+  SERVE_STATIC_FRONTEND: z.string().transform(val => val === 'true').default('false'),
   
   // Performance Configuration
   MAX_REQUEST_SIZE: z.string().default('10mb'),
@@ -85,6 +87,10 @@ export const config = {
   redisUrl: env.REDIS_URL,
   jwtSecret: env.JWT_SECRET || 'default-jwt-secret-change-in-production',
   logLevel: env.LOG_LEVEL,
+  frontend: {
+    url: env.FRONTEND_URL,
+    serveStatic: env.SERVE_STATIC_FRONTEND,
+  },
   
   // AI/LLM Services
   ai: {

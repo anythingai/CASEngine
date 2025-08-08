@@ -14,10 +14,24 @@ import {
   ActionType
 } from "./types"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 const REQUEST_TIMEOUT = 60000 // 60 seconds for search operations
 const RETRY_ATTEMPTS = 2
 const RETRY_DELAY = 1000
+
+// Determine API base URL at runtime.
+// Azure/static-serve must use same-origin from the browser to avoid CSP/CORS and localhost leaks.
+// Prefer same-origin in the browser even if NEXT_PUBLIC_API_URL is defined.
+// During SSR/build (no window), use NEXT_PUBLIC_API_URL if provided, else fallback to localhost:8000.
+function getBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    return ''; // always same-origin in the browser
+  }
+  const env = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (env) {
+    return env.replace(/\/+$/, '');
+  }
+  return 'http://localhost:8000';
+}
 
 class APIError extends Error {
   constructor(
@@ -58,7 +72,8 @@ async function apiRequestWithTimeout<T>(
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
+    const base = getBaseUrl();
+    const response = await fetch(`${base}${endpoint}`, config)
     clearTimeout(timeoutId)
     
     if (!response.ok) {

@@ -18,6 +18,9 @@ const nextConfig = {
   },
   
   images: {
+    // Disable Next.js image optimizer so static export works in Docker/API static mode.
+    // This makes Next render normal <img> tags and read assets directly from /public.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -86,16 +89,26 @@ const nextConfig = {
   
   // API routes configuration
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    
+    // Sanitize NEXT_PUBLIC_API_URL so users can set either
+    // - http://host:8000
+    // - http://host:8000/
+    // - http://host:8000/api
+    // - http://host:8000/api/
+    // and we will still route /api/* correctly to .../api/* (no double /api)
+    const raw = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    let base = raw.replace(/\/+$/, ''); // trim trailing slash
+    if (base.toLowerCase().endsWith('/api')) {
+      base = base.slice(0, -4); // drop trailing '/api'
+    }
+
     return [
       {
         source: '/api/health',
-        destination: `${apiUrl}/health`,
+        destination: `${base}/health`,
       },
       {
         source: '/api/:path*',
-        destination: `${apiUrl}/api/:path*`,
+        destination: `${base}/api/:path*`,
       },
     ];
   },

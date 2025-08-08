@@ -1,0 +1,194 @@
+name: Deploy to Azure Web App (Container)
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "Dockerfile"
+      - "start-production.sh"
+      - "turbo.json"
+      - "package.json"
+      - "apps/**"
+      - "packages/**"
+      - ".github/workflows/azure-container-deploy.yml"
+  workflow_dispatch:
+
+env:
+  # Adjust if you use different resource names
+  AZURE_RESOURCE_GROUP: cultural-arbitrage-rg
+  AZURE_WEBAPP_NAME: cultural-arbitrage
+  AZURE_ACR_NAME: culturalarbitrageacr
+  IMAGE_NAME: cultural-arbitrage
+
+jobs:
+  build-and-deploy:
+    name: Build image in ACR and deploy to Web App
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    concurrency:
+      group: azure-container-deploy
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 1) Login to Azure using a Service Principal
+      #    Create a GitHub secret named AZURE_CREDENTIALS that contains:
+      #    {
+      #      "clientId": "...",
+      #      "clientSecret": "...",
+      #      "subscriptionId": "...",
+      #      "tenantId": "..."
+      #    }
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 2) Resolve ACR login server and set tag to this commit SHA
+      - name: Resolve ACR and tag
+        id: vars
+        shell: bash
+        run: |
+          set -e
+          LOGIN_SERVER=$(az acr show -n "$AZURE_ACR_NAME" --query loginServer -o tsv)
+          echo "login_server=$LOGIN_SERVER" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "Resolved ACR login server: $LOGIN_SERVER"
+
+      # 3) Server-side build in ACR (fast, consistent with local)
+      - name: ACR build (image = repo@commit)
+        shell: bash
+        run: |
+          set -e
+          IMAGE_URI="${{ steps.vars.outputs.login_server }}/${IMAGE_NAME}:${{ steps.vars.outputs.image_tag }}"
+          echo "Building $IMAGE_URI via az acr build ..."
+          az acr build --registry "$AZURE_ACR_NAME" --image "$IMAGE_URI" .
+
+      # 4) Also keep/update a 'latest' tag for convenience (optional)
+      - name: Tag latest (optional)
+        shell: bash
+        run: |
+          set -e
+          SRC="${{ steps.vars.outputs.login_server }}/${IMAGE_NAME}:${{ steps.vars.outputs.image_tag }}"
+          echo "Importing $SRC as ${IMAGE_NAME}:latest ..."
+          az acr import --name "$AZURE_ACR_NAME" --source "$SRC" --image "${IMAGE_NAME}:latest" --force
+
+      # 5) Obtain ACR credentials for Web App container configuration
+      - name: Get ACR credentials
+        id: acr
+        shell: bash
+        run: |
+          set -e
+          ACR_USER=$(az acr credential show -n "$AZURE_ACR_NAME" --query username -o tsv)
+          ACR_PASS=$(az acr credential show -n "$AZURE_ACR_NAME" --query 'passwords[0].value' -o tsv)
+          echo "username=$ACR_USER" >> "$GITHUB_OUTPUT"
+          echo "password=$ACR_PASS" >> "$GITHUB_OUTPUT"
+
+      # 6) Point the Web App to the freshly-built image
+      - name: Configure Web App container
+        shell: bash
+        run: |
+          set -e
+          LOGIN_SERVER="${{ steps.vars.outputs.login_server }}"
+          IMAGE_URI="${LOGIN_SERVER}/${IMAGE_NAME}:${{ steps.vars.outputs.image_tag }}"
+          echo "Setting Web App container image to $IMAGE_URI ..."
+          az webapp config container set \
+            --name "$AZURE_WEBAPP_NAME" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --container-image-name "$IMAGE_URI" \
+            --container-registry-url "https://${LOGIN_SERVER}" \
+            --container-registry-user "${{ steps.acr.outputs.username }}" \
+            --container-registry-password "${{ steps.acr.outputs.password }}"
+
+      # 7) Apply non-secret App Settings (safe defaults for prod container)
+      - name: Apply non-secret App Settings
+        shell: bash
+        run: |
+          set -e
+          az webapp config appsettings set \
+            --name "$AZURE_WEBAPP_NAME" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --settings \
+              NODE_ENV=production \
+              PORT=8000 \
+              WEBSITES_PORT=8000 \
+              SERVE_STATIC_FRONTEND=true \
+              LOG_LEVEL=info \
+              ENABLE_CORS=true \
+              CORS_ORIGINS="https://${AZURE_WEBAPP_NAME}.azurewebsites.net" \
+              ENABLE_RATE_LIMITING=true \
+              RATE_LIMIT_WINDOW_MS=900000 \
+              RATE_LIMIT_MAX_REQUESTS=1000 \
+              ENABLE_LOGGING=true \
+              ENABLE_COMPRESSION=true \
+              MAX_REQUEST_SIZE=10mb \
+              REQUEST_TIMEOUT=30000 \
+              HEALTH_CHECK_INTERVAL=30000
+
+      # 8) Apply secret App Settings from GitHub Secrets (optional if not provided)
+      #    Add these repository secrets as needed:
+      #    - AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT, AZURE_OPENAI_API_VERSION
+      #    - COINGECKO_API_KEY, OPENSEA_API_KEY, FARCASTER_API_KEY, QLOO_API_KEY, QLOO_API_URL
+      #    - JWT_SECRET, API_KEY (if omitted, we generate random values below)
+      - name: Apply secret App Settings (from GH secrets)
+        shell: bash
+        run: |
+          set -e
+          SETTINGS=()
+
+          add_if_set () {
+            KEY="$1"; VAL="$2"
+            if [ -n "$VAL" ]; then
+              SETTINGS+=("$KEY=$VAL")
+            fi
+          }
+
+          add_if_set "AZURE_OPENAI_API_KEY"       "${{ secrets.AZURE_OPENAI_API_KEY }}"
+          add_if_set "AZURE_OPENAI_ENDPOINT"      "${{ secrets.AZURE_OPENAI_ENDPOINT }}"
+          add_if_set "AZURE_OPENAI_DEPLOYMENT"    "${{ secrets.AZURE_OPENAI_DEPLOYMENT }}"
+          add_if_set "AZURE_OPENAI_API_VERSION"   "${{ secrets.AZURE_OPENAI_API_VERSION }}"
+
+          add_if_set "COINGECKO_API_KEY"          "${{ secrets.COINGECKO_API_KEY }}"
+          add_if_set "OPENSEA_API_KEY"            "${{ secrets.OPENSEA_API_KEY }}"
+          add_if_set "FARCASTER_API_KEY"          "${{ secrets.FARCASTER_API_KEY }}"
+          add_if_set "QLOO_API_KEY"               "${{ secrets.QLOO_API_KEY }}"
+          add_if_set "QLOO_API_URL"               "${{ secrets.QLOO_API_URL }}"
+
+          # Provide JWT/API_KEY if supplied; otherwise generate once per deploy
+          JWT="${{ secrets.JWT_SECRET }}"
+          APIK="${{ secrets.API_KEY }}"
+          if [ -z "$JWT" ]; then JWT=$(openssl rand -base64 48 | tr -d '\n'); fi
+          if [ -z "$APIK" ]; then APIK=$(openssl rand -hex 32); fi
+          add_if_set "JWT_SECRET" "$JWT"
+          add_if_set "API_KEY"    "$APIK"
+
+          if [ ${#SETTINGS[@]} -gt 0 ]; then
+            echo "Applying ${#SETTINGS[@]} secret settings ..."
+            az webapp config appsettings set \
+              --name "$AZURE_WEBAPP_NAME" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --settings "${SETTINGS[@]}"
+          else
+            echo "No secret settings provided; skipping."
+          fi
+
+      # 9) Restart and run a quick smoke test
+      - name: Restart Web App
+        shell: bash
+        run: az webapp restart --name "$AZURE_WEBAPP_NAME" --resource-group "$AZURE_RESOURCE_GROUP"
+
+      - name: Smoke check (health + sample search)
+        shell: bash
+        run: |
+          set -e
+          URL="https://${AZURE_WEBAPP_NAME}.azurewebsites.net"
+          echo "Health:" && curl -fsS "$URL/health"
+          echo ""
+          echo "Search:" && curl -fsS -H "Content-Type: application/json" -d '{"vibe":"solarpunk"}' "$URL/api/search" | head -c 400
