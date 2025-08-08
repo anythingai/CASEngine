@@ -307,6 +307,7 @@ export function ResultsLayout({ data, className }: ResultsLayoutProps) {
               
               <SimulationPanel
                 assets={data.assets}
+                vibe={data.query}
                 className="w-full"
               />
             </div>

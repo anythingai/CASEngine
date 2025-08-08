@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useCallback } from 'react'
-import { AssetRecommendation, SimulateRequest, SimulateResponse } from '@/lib/types'
-import { simulatePortfolio } from '@/lib/api'
+import { AssetRecommendation, SimulateResponse, RiskAnalysis, PortfolioSimulation } from '@/lib/types'
+import { simulateVibePortfolio } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import { ErrorDisplay } from '@/components/ErrorDisplay'
 import { PortfolioBuilder } from './PortfolioBuilder'
 import { SimulationResults } from './SimulationResults'
 import { RiskAssessment } from './RiskAssessment'
-import { 
+import {
   Calculator,
   TrendingUp,
   Shield,
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 interface SimulationPanelProps {
   assets: AssetRecommendation[]
   className?: string
+  vibe?: string
 }
 
 export interface SimulationConfig {
@@ -38,7 +39,7 @@ export interface SimulationConfig {
   rebalanceFrequency: 'never' | 'monthly' | 'quarterly'
 }
 
-export function SimulationPanel({ assets, className }: SimulationPanelProps) {
+export function SimulationPanel({ assets, className, vibe }: SimulationPanelProps) {
   const [activeTab, setActiveTab] = useState<'builder' | 'results' | 'risk'>('builder')
   const [isSimulating, setIsSimulating] = useState(false)
   const [simulationResults, setSimulationResults] = useState<SimulateResponse | null>(null)
@@ -58,15 +59,8 @@ export function SimulationPanel({ assets, className }: SimulationPanelProps) {
   }, [])
 
   const runSimulation = useCallback(async () => {
-    if (config.selectedAssets.length === 0) {
-      setError('Please select at least one asset for the portfolio')
-      return
-    }
-
-    // Validate allocations sum to 100%
-    const totalAllocation = config.selectedAssets.reduce((sum, item) => sum + item.allocation, 0)
-    if (Math.abs(totalAllocation - 100) > 0.1) {
-      setError(`Portfolio allocations must sum to 100%. Current total: ${totalAllocation.toFixed(1)}%`)
+    if (!vibe || vibe.trim().length === 0) {
+      setError('Missing vibe context. Please run a search first to provide a vibe.')
       return
     }
 
@@ -74,17 +68,90 @@ export function SimulationPanel({ assets, className }: SimulationPanelProps) {
     setError(null)
 
     try {
-      const request: SimulateRequest = {
-        assets: config.selectedAssets.map(item => ({
-          symbol: item.asset.symbol,
-          allocation: item.allocation,
-          amount: (config.portfolioSize * item.allocation) / 100
-        })),
-        duration: parseInt(config.timeHorizon.replace(/[my]/g, '')) * (config.timeHorizon.includes('y') ? 365 : 30),
-        initialInvestment: config.portfolioSize
+      // Call AI-driven vibe portfolio simulation on the backend
+      const { data } = await simulateVibePortfolio(vibe, {
+        portfolioSize: config.portfolioSize,
+        riskTolerance: config.riskTolerance,
+        timeHorizon: config.timeHorizon,
+        rebalanceFrequency: config.rebalanceFrequency
+      })
+
+      const sim = data.simulation
+
+      // Map backend SimulationResult -> UI PortfolioSimulation
+      const expectedReturn = sim.projections.expectedReturn || 0
+      const totalValue = Math.round(config.portfolioSize * (1 + expectedReturn / 100) * 100) / 100
+
+      const mappedAssets = sim.portfolio.assets.map((a: any) => {
+        const invested = (config.portfolioSize * a.allocation) / 100
+        const value = Math.round(invested * (1 + expectedReturn / 100) * 100) / 100
+        return {
+          symbol: a.id,
+          allocation: a.allocation,
+          value,
+          return: value - invested,
+          returnPercent: expectedReturn
+        }
+      })
+
+      const simulation: PortfolioSimulation = {
+        totalValue,
+        totalReturn: totalValue - config.portfolioSize,
+        totalReturnPercent: expectedReturn,
+        timeframe: sim.projections.timeframe,
+        assets: mappedAssets,
+        performance: {
+          sharpeRatio: sim.projections.sharpeRatio,
+          volatility: sim.projections.volatility,
+          maxDrawdown: sim.projections.maxDrawdown
+        }
       }
 
-      const response = await simulatePortfolio(request)
+      const volatility = sim.projections.volatility || 0
+      const overallRisk: RiskAnalysis['overallRisk'] =
+        volatility < 15 ? 'low' :
+        volatility < 25 ? 'medium' :
+        volatility < 40 ? 'high' : 'extreme'
+
+      const riskAnalysis: RiskAnalysis = {
+        overallRisk,
+        riskScore: Math.min(100, Math.round(sim.portfolio.riskScore)),
+        factors: [
+          {
+            factor: 'Liquidity',
+            impact: sim.riskMetrics.liquidityScore > 70 ? 'low' :
+                    sim.riskMetrics.liquidityScore > 40 ? 'medium' : 'high',
+            description: `Liquidity score ${sim.riskMetrics.liquidityScore}/100`
+          },
+          {
+            factor: 'Diversification',
+            impact: sim.portfolio.diversificationScore > 60 ? 'low' :
+                    sim.portfolio.diversificationScore > 40 ? 'medium' : 'high',
+            description: `Diversification score ${sim.portfolio.diversificationScore}/100`
+          },
+          {
+            factor: 'VaR (95%)',
+            impact: sim.riskMetrics.var95 > config.portfolioSize * 0.08 ? 'high' :
+                    sim.riskMetrics.var95 > config.portfolioSize * 0.04 ? 'medium' : 'low',
+            description: `VaR95 ≈ $${sim.riskMetrics.var95.toLocaleString()}`
+          }
+        ],
+        recommendations: [
+          ...sim.recommendations.riskMitigation,
+          ...sim.recommendations.rebalancing
+        ]
+      }
+
+      const response: SimulateResponse = {
+        simulation,
+        recommendations: [
+          ...sim.recommendations.opportunities,
+          ...sim.recommendations.rebalancing.slice(0, 2)
+        ],
+        riskAnalysis,
+        timestamp: new Date().toISOString()
+      }
+
       setSimulationResults(response)
       setActiveTab('results')
     } catch (err) {
@@ -92,7 +159,7 @@ export function SimulationPanel({ assets, className }: SimulationPanelProps) {
     } finally {
       setIsSimulating(false)
     }
-  }, [config])
+  }, [config, vibe])
 
   const runQuickSimulation = useCallback(async () => {
     // Quick simulation with equal weight distribution across top assets
@@ -149,7 +216,7 @@ export function SimulationPanel({ assets, className }: SimulationPanelProps) {
           </Button>
           <Button
             onClick={runSimulation}
-            disabled={isSimulating || selectedAssetsCount === 0}
+            disabled={isSimulating}
             className="flex items-center gap-2"
           >
             {isSimulating ? (
