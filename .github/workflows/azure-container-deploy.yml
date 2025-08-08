@@ -189,6 +189,18 @@ jobs:
         run: |
           set -e
           URL="https://${AZURE_WEBAPP_NAME}.azurewebsites.net"
-          echo "Health:" && curl -fsS "$URL/health"
+
+          echo "Health:"
+          curl -fsS "$URL/health"
           echo ""
-          echo "Search:" && curl -fsS -H "Content-Type: application/json" -d '{"vibe":"solarpunk"}' "$URL/api/search" | head -c 400
+
+          echo "Search (first 400 bytes):"
+          # Perform request, capture HTTP status without triggering SIGPIPE failures from head
+          STATUS=$(curl -sS -o /tmp/search.json -w "%{http_code}" -H "Content-Type: application/json" -d '{"vibe":"solarpunk"}' "$URL/api/search" || true)
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            head -c 400 /tmp/search.json
+            echo ""
+          else
+            echo "Search failed with HTTP $STATUS"
+            exit 1
+          fi
